@@ -307,6 +307,18 @@ async function api(request, env, url) {
     return json({ ok: true });
   }
 
+  const cancelMatch = url.pathname.match(/^\/api\/orders\/([^/]+)\/cancel$/);
+  if (cancelMatch && request.method === "POST") {
+    if (!(await adminAllowed(request, env))) return json({ error: "Senha administrativa inválida." }, 401);
+    const code = decodeURIComponent(cancelMatch[1]);
+    const order = await env.DB.prepare("SELECT id,status FROM pedidos WHERE codigo=?").bind(code).first();
+    if (!order) return json({ error: "Pedido não encontrado." }, 404);
+    if (order.status === "cancelado") return json({ ok: true, alreadyCanceled: true });
+    if (order.status !== "aguardando_comprovante") return json({ error: "Somente pedidos aguardando comprovante podem ser cancelados." }, 409);
+    await env.DB.prepare("UPDATE pedidos SET status='cancelado',atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(order.id).run();
+    return json({ ok: true });
+  }
+
   return json({ error: "Rota não encontrada." }, 404);
 }
 

@@ -202,6 +202,18 @@
     }
   };
 
+  window.cancelSale = async id => {
+    if (!isAdmin()) return alert('Entre como administrador para cancelar o pedido.');
+    if (!confirm('Cancelar este pedido? Ele permanecerá no histórico sem alterar estoque ou caixa.')) return;
+    try {
+      await request('/orders/' + encodeURIComponent(id) + '/cancel', { method: 'POST' });
+      await reloadAdmin();
+      toast('Pedido cancelado');
+    } catch (error) {
+      alert('Não foi possível cancelar o pedido: ' + error.message);
+    }
+  };
+
   $('adminLoginForm').addEventListener('submit', async event => {
     event.preventDefault(); event.stopImmediatePropagation();
     const value = $('adminLoginPassword').value;
