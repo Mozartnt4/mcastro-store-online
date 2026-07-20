@@ -1,0 +1,11 @@
+MCastro Enterprise 4.3
+
+1) Descompacte este ZIP.
+2) Envie as pastas public e src e os arquivos da raiz para o GitHub.
+3) Conecte o repositório em Cloudflare Workers.
+4) Use npm run deploy como comando de implantação.
+5) Em Associações, ligue o D1 com variável DB ao banco mcastro-database.
+6) Reimplante.
+7) Abra /api/health e confirme ok:true e database:true.
+8) Abra /?modo=admin, senha 1234, cadastre um produto.
+9) Abra /?modo=catalogo em outro celular.

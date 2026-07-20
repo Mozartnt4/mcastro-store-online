@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#6d28d9">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>MCastro Store Pro</title>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="logo">MC</div><div><strong>MCastro Store</strong><small>PRO</small></div></div>
+    <nav>
+      <button class="nav active" data-view="dashboard">⌂ <span>Dashboard</span></button>
+      <button class="nav" data-view="products">▣ <span>Produtos</span></button>
+      <button class="nav" data-view="sales">🛒 <span>Vendas</span></button>
+      <button class="nav" data-view="customers">👥 <span>Clientes</span></button>
+      <button class="nav" data-view="cash">💰 <span>Caixa</span></button>
+      <button class="nav" data-view="settings">⚙ <span>Configurações</span></button>
+    </nav>
+  </aside>
+
+  <main>
+    <header>
+      <div><h1 id="title">Dashboard</h1><p id="subtitle">Visão geral do seu negócio</p></div>
+      <button class="primary" id="quickProduct">+ Produto</button>
+    </header>
+
+    <section id="dashboardView" class="view active">
+      <div class="hero">
+        <div><small>FATURAMENTO TOTAL</small><h2 id="heroRevenue">R$ 0,00</h2><p>Controle de vendas, estoque e etiquetas inteligentes.</p></div>
+        <div class="heroMark">↗</div>
+      </div>
+      <div class="stats">
+        <article><span>Produtos</span><strong id="statProducts">0</strong><small id="statLow">0 alertas</small></article>
+        <article><span>Valor do estoque</span><strong id="statStock">R$ 0,00</strong><small>Calculado pelo custo</small></article>
+        <article><span>Lucro bruto</span><strong id="statProfit">R$ 0,00</strong><small>Vendas menos custos</small></article>
+        <article><span>Caixa</span><strong id="statCash">R$ 0,00</strong><small>Entradas menos saídas</small></article>
+      </div>
+      <div class="columns">
+        <article class="panel"><div class="panelHead"><div><h3>Estoque crítico</h3><p>Produtos que precisam de reposição</p></div></div><div id="lowList" class="list"></div></article>
+        <article class="panel"><div class="panelHead"><div><h3>Últimas vendas</h3><p>Movimentações recentes</p></div></div><div id="recentSales" class="list"></div></article>
+      </div>
+    </section>
+
+    <section id="productsView" class="view">
+      <div class="catalogHero">
+        <div>
+          <span class="catalogEyebrow">CATÁLOGO INTELIGENTE</span>
+          <h2>Produtos da sua loja</h2>
+          <p>Organize por categoria, acompanhe o estoque e gere QR Codes e etiquetas.</p>
+        </div>
+        <button class="primary" id="newProduct">+ Novo produto</button>
+      </div>
+
+      <div class="catalogControls">
+        <div class="catalogSearch"><span>⌕</span><input id="productSearch" placeholder="Pesquisar nome, SKU, categoria, marca ou modelo"></div>
+        <select id="stockFilter"><option value="">Todo estoque</option><option value="low">Estoque baixo</option><option value="zero">Sem estoque</option></select>
+        <select id="sortProducts">
+          <option value="name">Nome A–Z</option>
+          <option value="newest">Mais recentes</option>
+          <option value="priceAsc">Menor preço</option>
+          <option value="priceDesc">Maior preço</option>
+          <option value="stock">Maior estoque</option>
+        </select>
+      </div>
+
+      <div id="categoryChips" class="categoryChips"></div>
+
+      <div class="catalogSummary">
+        <span id="catalogCount">0 produtos</span>
+        <span id="catalogValue">R$ 0,00 em estoque</span>
+      </div>
+
+      <div id="productGrid" class="productGrid catalogGrid"></div>
+    </section>
+
+    <section id="salesView" class="view">
+      <div class="publicStoreHero publicOnly">
+        <div><span class="storeTag">LOJA ONLINE</span><h2 id="publicStoreName">MCastro Solutions</h2><p>Escolha seus produtos, pague por PIX e receba em casa ou retire na loja.</p></div>
+        <div class="storeTrust"><span>✓ Compra rápida</span><span>✓ Estoque atualizado</span><span>✓ Pedido pelo WhatsApp</span></div>
+      </div>
+      <div id="publicCategoryChips" class="categoryChips publicOnly"></div>
+      <div class="saleLayout">
+        <article class="panel">
+          <div class="panelHead"><div><h3>Vitrine</h3><p>Toque no produto para ver detalhes ou adicionar ao carrinho</p></div><button class="secondary adminEntry" id="adminEntry">🔐 Administrador</button></div>
+          <input id="saleSearch" placeholder="Pesquisar produto">
+          <div id="saleProducts" class="saleProducts"></div>
+        </article>
+        <article class="panel cartPanel">
+          <div class="panelHead"><div><h3>Carrinho</h3><p id="cartCount">0 itens</p></div><button class="textDanger" id="clearCart">Limpar</button></div>
+          <div id="cartList" class="cartList"></div>
+          <div class="saleForm">
+            <label class="adminOnly">Cliente<select id="saleCustomer"><option value="">Consumidor não identificado</option></select></label>
+            <div class="publicOnly customerQuickRegister">
+              <h4>Seus dados</h4><p>Preencha somente para concluir o pedido.</p>
+              <label>Nome completo<input id="publicCustomerName" autocomplete="name" placeholder="Digite seu nome completo"></label>
+              <div class="row2"><label>WhatsApp<input id="publicCustomerPhone" inputmode="tel" autocomplete="tel" placeholder="(86) 99999-9999"></label><label>E-mail (opcional)<input id="publicCustomerEmail" type="email" autocomplete="email" placeholder="seu@email.com"></label></div>
+            </div>
+            <label>Pagamento<select id="payment"><option>À vista</option><option>Pix</option><option>Dinheiro</option><option>Cartão de débito</option><option>Cartão de crédito</option><option>Crediário</option></select></label><div class="publicOnly publicCheckoutFields"><label>Entrega<select id="deliveryMethod"><option value="pickup">Retirada na loja — grátis</option><option value="delivery">Receber em casa</option></select></label><div id="deliveryFields" class="deliveryFields">
+              <div class="row2"><label>CEP<input id="deliveryCep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"></label><label>Cidade<input id="deliveryCity" autocomplete="address-level2" value="Teresina"></label></div>
+              <label>Rua / Avenida<input id="deliveryStreet" autocomplete="address-line1" placeholder="Nome da rua ou avenida"></label>
+              <div class="row2"><label>Número<input id="deliveryNumber" inputmode="numeric" placeholder="Nº"></label><label>Bairro<input id="deliveryDistrict" autocomplete="address-level3" placeholder="Bairro"></label></div>
+              <label>Complemento e referência<textarea id="deliveryAddress" rows="2" placeholder="Casa, apartamento, ponto de referência"></textarea></label>
+              <label>Localização no Google Maps<input id="mapsLink" type="url" placeholder="Cole o link da localização (opcional)"></label>
+            </div></div>
+            <div class="row2"><label>Parcelas<select id="installments"><option value="1">1x</option></select></label><label>Desconto<input id="discount" type="number" min="0" step="0.01" value="0"></label></div>
+            <div class="sum"><span>Subtotal</span><strong id="subtotal">R$ 0,00</strong></div><div class="sum publicOnly"><span>Taxa de entrega</span><strong id="deliveryFeeDisplay">R$ 0,00</strong></div>
+            <div class="sum"><span>Valor da parcela</span><strong id="installmentValue">R$ 0,00</strong></div>
+            <div class="sum total"><span>Total</span><strong id="total">R$ 0,00</strong></div>
+            <div class="publicOrderNotice publicOnly">Revise o carrinho e seus dados. Ao concluir, o pedido será aberto no WhatsApp para você enviar o comprovante.</div><div id="pixArea" class="pixArea publicOnly"><div id="pixQr"></div><label>PIX Copia e Cola<textarea id="pixCopyPaste" rows="4" readonly></textarea></label><button type="button" class="secondary" id="copyPix">Copiar código PIX</button></div><button class="checkout" id="finishSale">Finalizar venda</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="customersView" class="view">
+      <div class="toolbar"><input id="customerSearch" placeholder="Pesquisar cliente ou telefone"><button class="primary" id="newCustomer">+ Novo cliente</button></div>
+      <div id="customerGrid" class="customerGrid"></div>
+    </section>
+
+    <section id="cashView" class="view">
+      <div class="stats">
+        <article><span>Entradas</span><strong id="cashIn">R$ 0,00</strong></article>
+        <article><span>Saídas</span><strong id="cashOut">R$ 0,00</strong></article>
+        <article><span>Saldo</span><strong id="cashBalance">R$ 0,00</strong></article>
+        <article><span>Capital de reposição</span><strong id="replacement">R$ 0,00</strong></article>
+      </div>
+      <article class="panel"><div class="panelHead"><div><h3>Movimentações</h3><p>Rastreio de entradas e retiradas</p></div><button class="primary" id="newCash">+ Lançamento</button></div><div id="cashList" class="list"></div></article>
+    </section>
+
+    <section id="settingsView" class="view">
+      <div class="columns">
+        <article class="panel"><h3>Identidade pública</h3><label>Nome da loja<input id="storeName" value="MCastro Solutions"></label><label>Chave Pix<input id="pixKey" placeholder="Sua chave Pix"></label><label>WhatsApp<input id="whatsapp" placeholder="5599999999999"></label><label>Taxa de entrega fixa<input id="deliveryFee" type="number" min="0" step="0.01" value="0"></label><label>Senha do administrador<input id="adminPassword" type="password" placeholder="Defina uma senha segura"></label><label>Cloudinary — Cloud Name<input id="cloudinaryCloudName" placeholder="Ex.: fzklkuxa"></label><label>Cloudinary — Upload Preset<input id="cloudinaryUploadPreset" placeholder="Ex.: mcastro_produtos"></label><button class="primary" id="saveSettings">Salvar configurações</button><div class="cloudinaryTest"><h4>Teste de imagens na nuvem</h4><p>Escolha uma foto para confirmar o envio ao Cloudinary antes de cadastrar produtos.</p><label class="secondary file">Selecionar foto de teste<input id="cloudinaryTestFile" type="file" accept="image/*" hidden></label><div id="cloudinaryTestStatus" class="uploadStatus">Nenhum teste realizado.</div><img id="cloudinaryTestPreview" class="cloudinaryTestPreview" alt="Prévia da imagem enviada" hidden><textarea id="cloudinaryTestUrl" rows="3" readonly placeholder="O link público aparecerá aqui após o envio"></textarea><div class="storeQrActions"><button class="secondary" id="copyCloudinaryTestUrl" type="button" disabled>Copiar link</button><button class="secondary" id="openCloudinaryTestUrl" type="button" disabled>Abrir imagem</button></div></div></article>
+        <article class="panel"><h3>QR público da loja</h3><p>Este QR abre somente o catálogo para o cliente comprar.</p><label>Link público do catálogo<input id="catalogUrl" placeholder="https://seuprojeto.pages.dev/?modo=catalogo"></label><div id="localCatalogStatus" class="uploadStatus">Verificando produtos deste endereço...</div><div id="storeQr" class="storeQr"></div><textarea id="catalogLink" rows="2" readonly></textarea><div class="storeQrActions"><button class="secondary" id="copyCatalogLink" type="button">Copiar link</button><button class="secondary" id="shareCatalog" type="button">Compartilhar</button><button class="primary" id="printStoreQr" type="button">Imprimir QR</button></div></article>
+        <article class="panel"><h3>Testes e acesso</h3><p>Abra o catálogo público no mesmo aparelho ou encerre o acesso administrativo.</p><div class="storeQrActions"><button class="secondary" id="previewCatalog" type="button">Ver catálogo público</button><button class="secondary" id="logoutAdmin" type="button">Sair do administrador</button></div><p class="labelNote">Senha inicial: <strong>1234</strong>. Altere-a antes de publicar.</p></article><article class="panel"><h3>Backup</h3><p>Baixe uma cópia completa antes de trocar de aparelho ou navegador.</p><button class="primary" id="backup">Baixar backup</button><label class="secondary file">Restaurar backup<input id="restore" type="file" accept=".json" hidden></label></article>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom">
+    <button class="active" data-view="dashboard"><b>⌂</b><small>Início</small></button>
+    <button data-view="products"><b>▣</b><small>Produtos</small></button>
+    <button data-view="sales"><b class="plus">+</b><small>Vender</small></button>
+    <button data-view="customers"><b>👥</b><small>Clientes</small></button>
+    <button data-view="cash"><b>💰</b><small>Caixa</small></button>
+    <button data-view="settings"><b>⚙</b><small>Config.</small></button>
+  </nav>
+</div>
+
+<div class="modal" id="productModal"><div class="modalCard wide">
+  <div class="modalHead"><div><h3 id="productModalTitle">Novo produto</h3><p>Cadastro completo e etiqueta QR</p></div><button class="close">×</button></div>
+  <form id="productForm">
+    <input type="hidden" id="productId">
+    <div class="formGrid">
+      <label class="full">Nome do produto<input id="pName" required></label>
+      <label>Categoria<select id="pCategory" required></select></label>
+      <label>Subcategoria
+        <select id="pSubcategory"><option value="">Selecione uma subcategoria</option></select>
+      </label>
+      <label>SKU automático<input id="pSku" readonly></label>
+      <label>Unidade
+        <select id="pUnit">
+          <option>Unidade</option><option>Caixa</option><option>Pacote</option><option>Par</option>
+          <option>Kit</option><option>Quilograma</option><option>Grama</option><option>Litro</option>
+          <option>Mililitro</option><option>Metro</option><option>Dúzia</option>
+        </select>
+      </label>
+      <label>Marca<input id="pBrand"></label>
+      <label>Modelo<input id="pModel"></label>
+      <label>Garantia<select id="pWarranty"><option value="0">Sem garantia</option><option value="30">30 dias</option><option value="90">90 dias</option><option value="180">6 meses</option><option value="365">1 ano</option></select></label>
+      <label>Fornecedor<input id="pSupplier"></label>
+      <label>Localização<input id="pLocation" placeholder="Ex.: Prateleira A2"></label>
+      <label>Custo<input id="pCost" type="number" min="0" step="0.01" required></label>
+      <label>Margem (%)<input id="pMargin" type="number" min="0" step="0.1" value="50"></label>
+      <label>Preço de venda<input id="pPrice" type="number" min="0" step="0.01" required></label>
+      <label>Lucro por unidade<input id="pProfit" readonly></label>
+      <label>Estoque<input id="pStock" type="number" min="0" required></label>
+      <label>Estoque mínimo<input id="pMin" type="number" min="0" value="3"></label>
+      <div class="full"><span class="fieldTitle">Foto</span><div class="photoArea"><img id="photoPreview"><div class="photoBtns"><label class="primary">📷 Tirar foto<input id="camera" type="file" accept="image/*" capture="environment" hidden></label><label class="secondary">🖼 Galeria<input id="gallery" type="file" accept="image/*" hidden></label><button type="button" class="textDanger" id="removePhoto">Remover</button><div id="photoUploadStatus" class="uploadStatus">Nenhuma foto selecionada.</div></div></div></div>
+    </div>
+    <div class="modalActions"><button type="button" class="secondary close">Cancelar</button><button class="primary" id="saveProductButton">Salvar produto</button></div>
+  </form>
+</div></div>
+
+<div class="modal" id="customerModal"><div class="modalCard">
+  <div class="modalHead"><div><h3>Novo cliente</h3><p>Dados para venda e entrega</p></div><button class="close">×</button></div>
+  <form id="customerForm"><input type="hidden" id="cId"><div class="formGrid"><label class="full">Nome<input id="cName" required></label><label>Telefone<input id="cPhone"></label><label>CPF<input id="cCpf"></label><label class="full">Endereço<input id="cAddress"></label></div><div class="modalActions"><button type="button" class="secondary close">Cancelar</button><button class="primary">Salvar</button></div></form>
+</div></div>
+
+<div class="modal" id="cashModal"><div class="modalCard">
+  <div class="modalHead"><div><h3>Novo lançamento</h3><p>Entrada, despesa ou retirada</p></div><button class="close">×</button></div>
+  <form id="cashForm"><div class="formGrid"><label>Tipo<select id="mType"><option value="in">Entrada</option><option value="out">Saída</option><option value="withdrawal">Retirada pessoal</option></select></label><label>Valor<input id="mValue" type="number" min="0.01" step="0.01" required></label><label class="full">Descrição<input id="mDescription" required></label><label>Forma<select id="mMethod"><option>Dinheiro</option><option>Pix</option><option>Transferência</option><option>Cartão</option></select></label><label>Data<input id="mDate" type="datetime-local" required></label></div><div class="modalActions"><button type="button" class="secondary close">Cancelar</button><button class="primary">Salvar</button></div></form>
+</div></div>
+
+<div class="modal" id="labelModal"><div class="modalCard">
+  <div class="modalHead"><div><h3>MC Label</h3><p>QR Code e impressão de etiquetas</p></div><button class="close">×</button></div>
+  <div class="labelControls">
+    <label>Tamanho<select id="labelSize"><option value="25x25">P — 25 × 25 mm</option><option value="40x30">M — 40 × 30 mm</option><option value="60x40">G — 60 × 40 mm</option></select></label>
+    <label>Quantidade<input id="labelQty" type="number" min="1" max="200" value="1"></label>
+  </div>
+  <div id="labelPreviewWrap"><div id="labelPreview" class="productLabel size-p"><div id="labelQr"></div><div class="labelInfo"><strong id="labelName"></strong><small id="labelSku"></small><b id="labelPrice"></b></div></div></div>
+  <div class="labelNote">O QR abre a ficha pública do produto. Custo e lucro não aparecem para o cliente.</div>
+  <div class="modalActions"><button class="secondary" id="openPublic">Ver como cliente</button><button class="primary" id="printLabel">Imprimir etiquetas</button></div>
+</div></div>
+
+<div class="modal" id="publicModal"><div class="modalCard publicCard">
+  <button class="close publicClose">×</button>
+  <img id="publicImage">
+  <span class="publicBadge">MCastro Solutions</span>
+  <h2 id="publicName"></h2>
+  <div id="publicPrice" class="publicPrice"></div>
+  <div id="publicDetails" class="publicDetails"></div>
+  <div class="publicProductActions"><button class="secondary" id="sharePublicProduct" type="button">Compartilhar produto</button><button class="primary" id="addPublicProduct" type="button">🛒 Adicionar ao carrinho</button></div><button class="checkout" id="buyWhatsapp">Comprar pelo WhatsApp</button>
+</div></div>
+
+
+<div class="modal" id="adminLoginModal"><div class="modalCard">
+  <div class="modalHead"><div><h3>Acesso administrativo</h3><p>Informe a senha para abrir o gerenciador.</p></div><button class="close">×</button></div>
+  <form id="adminLoginForm"><label>Senha<input id="adminLoginPassword" type="password" autocomplete="current-password" required></label><div class="modalActions"><button type="button" class="secondary close">Cancelar</button><button class="primary">Entrar</button></div></form>
+</div></div>
+<div id="systemError" style="display:none;position:fixed;left:10px;right:10px;top:10px;z-index:9999;background:#fee2e2;color:#991b1b;padding:12px;border-radius:12px;font-weight:700"></div>
+<div class="toast" id="toast"></div>
+<script src="qrcode.min.js" defer></script>
+<script src="app.js" defer></script>
+<script src="enhanced.js" defer></script>
+<script src="online.js" defer></script>
+</body></html>
