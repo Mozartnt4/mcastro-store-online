@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mcastro-v50';
+const CACHE_NAME = 'mcastro-v51';
 const ASSETS = [
   './', './index.html', './styles.css', './app.js', './enhanced.js',
   './online.js', './service-worker.js', './qrcode.min.js', './manifest.webmanifest',
