@@ -432,6 +432,7 @@
   const finish=$('finishSale');
   finish.addEventListener('click', e=>{
     if(!isPublic()) return;
+    if(window.mcastroOnlineCheckout) return;
     e.preventDefault();e.stopImmediatePropagation();
     if(!cart.length)return alert('Seu carrinho está vazio.');
     const name=$('publicCustomerName').value.trim();

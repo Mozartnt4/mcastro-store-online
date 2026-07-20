@@ -263,13 +263,13 @@ async function api(request, env, url) {
     const installments = isAdmin ? Math.max(1, Math.min(24, integer(body.installments, 1))) : 1;
     const statements = [env.DB.prepare(`INSERT INTO pedidos(codigo,cliente_id,cliente_nome,cliente_whatsapp,status,tipo_entrega,endereco_entrega,maps_link,forma_pagamento,parcelas,subtotal,taxa_entrega,desconto,total,custo_total,lucro,observacoes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(code, customerId || null, name, phone, isAdmin ? "concluido" : "aguardando_comprovante", body.deliveryMethod === "delivery" ? "delivery" : "pickup", address, clean(body.mapsLink), payment, installments, subtotal, deliveryFee, discount, total, costTotal, total - costTotal, clean(body.notes))];
     for (const { p, qty } of normalized) {
-      statements.push(
+      statements.push(env.DB.prepare("INSERT INTO itens_pedido(pedido_id,produto_id,nome_produto,quantidade,preco_unitario,custo_unitario,subtotal) VALUES((SELECT id FROM pedidos WHERE codigo=?),?,?,?,?,?,?)").bind(code, p.id, p.nome, qty, num(p.preco_venda), num(p.preco_custo), num(p.preco_venda) * qty));
+      if (isAdmin) statements.push(
         env.DB.prepare("UPDATE produtos SET estoque=estoque-?,atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(qty, p.id),
-        env.DB.prepare("INSERT INTO itens_pedido(pedido_id,produto_id,nome_produto,quantidade,preco_unitario,custo_unitario,subtotal) VALUES((SELECT id FROM pedidos WHERE codigo=?),?,?,?,?,?,?)").bind(code, p.id, p.nome, qty, num(p.preco_venda), num(p.preco_custo), num(p.preco_venda) * qty),
-        env.DB.prepare("INSERT INTO movimentacoes_estoque(produto_id,tipo,quantidade,estoque_anterior,estoque_novo,motivo,pedido_id) SELECT id,'saida',?,estoque+?,estoque,?,(SELECT id FROM pedidos WHERE codigo=?) FROM produtos WHERE id=?").bind(qty, qty, "Pedido " + code, code, p.id)
+        env.DB.prepare("INSERT INTO movimentacoes_estoque(produto_id,tipo,quantidade,estoque_anterior,estoque_novo,motivo,pedido_id) SELECT id,'saida',?,estoque+?,estoque,?,(SELECT id FROM pedidos WHERE codigo=?) FROM produtos WHERE id=?").bind(qty, qty, "Venda " + code, code, p.id)
       );
     }
-    statements.push(env.DB.prepare("INSERT INTO caixa(tipo,descricao,valor,metodo,pedido_id) VALUES('in',?,?,?,(SELECT id FROM pedidos WHERE codigo=?))").bind("Pedido " + code, total, payment, code));
+    if (isAdmin) statements.push(env.DB.prepare("INSERT INTO caixa(tipo,descricao,valor,metodo,pedido_id) VALUES('in',?,?,?,(SELECT id FROM pedidos WHERE codigo=?))").bind("Pedido " + code, total, payment, code));
     try { await env.DB.batch(statements); }
     catch (error) {
       if (/estoque_insuficiente/i.test(String(error?.message))) return json({ error: "O estoque mudou durante a compra. Atualize o carrinho e tente novamente." }, 409);
@@ -277,6 +277,34 @@ async function api(request, env, url) {
     }
     const order = await env.DB.prepare("SELECT id FROM pedidos WHERE codigo=?").bind(code).first();
     return json({ ok: true, order: { id: String(order.id), code, subtotal, deliveryFee, discount, total } }, 201);
+  }
+
+  const completeMatch = url.pathname.match(/^\/api\/orders\/([^/]+)\/complete$/);
+  if (completeMatch && request.method === "POST") {
+    if (!(await adminAllowed(request, env))) return json({ error: "Senha administrativa inválida." }, 401);
+    const code = decodeURIComponent(completeMatch[1]);
+    const order = await env.DB.prepare("SELECT * FROM pedidos WHERE codigo=?").bind(code).first();
+    if (!order) return json({ error: "Pedido não encontrado." }, 404);
+    if (order.status === "concluido") return json({ ok: true, alreadyCompleted: true });
+    if (order.status !== "aguardando_comprovante") return json({ error: "Este pedido não está aguardando comprovante." }, 409);
+    const result = await env.DB.prepare("SELECT i.*,p.estoque FROM itens_pedido i JOIN produtos p ON p.id=i.produto_id WHERE i.pedido_id=?").bind(order.id).all();
+    const items = result.results || [];
+    for (const item of items) if (num(item.estoque) < num(item.quantidade)) return json({ error: `Estoque insuficiente para ${item.nome_produto}.` }, 409);
+    const statements = [];
+    for (const item of items) statements.push(
+      env.DB.prepare("UPDATE produtos SET estoque=estoque-?,atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(item.quantidade, item.produto_id),
+      env.DB.prepare("INSERT INTO movimentacoes_estoque(produto_id,tipo,quantidade,estoque_anterior,estoque_novo,motivo,pedido_id) SELECT id,'saida',?,estoque+?,estoque,?,? FROM produtos WHERE id=?").bind(item.quantidade, item.quantidade, "Venda concluída " + code, order.id, item.produto_id)
+    );
+    statements.push(
+      env.DB.prepare("INSERT INTO caixa(tipo,descricao,valor,metodo,pedido_id) VALUES('in',?,?,?,?)").bind("Pedido " + code, num(order.total), order.forma_pagamento || "Pix", order.id),
+      env.DB.prepare("UPDATE pedidos SET status='concluido',atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(order.id)
+    );
+    try { await env.DB.batch(statements); }
+    catch (error) {
+      if (/estoque_insuficiente/i.test(String(error?.message))) return json({ error: "Estoque insuficiente para concluir a venda." }, 409);
+      throw error;
+    }
+    return json({ ok: true });
   }
 
   return json({ error: "Rota não encontrada." }, 404);

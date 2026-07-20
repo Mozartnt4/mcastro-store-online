@@ -1,5 +1,7 @@
 // MCastro Online Adapter v4.3 — todas as gravações passam pelo Cloudflare D1.
 (() => {
+  // Informa aos scripts legados que o checkout definitivo e online está ativo.
+  window.mcastroOnlineCheckout = true;
   const API = '/api';
   let onlineReady = false;
   let syncing = false;
@@ -187,6 +189,18 @@
     } catch (error) { alert('Não foi possível registrar o pedido: ' + error.message); }
     finally { button.disabled = false; button.textContent = publicMode ? 'Concluir pedido pelo WhatsApp' : 'Finalizar venda'; }
   }, true);
+
+  window.completeSale = async id => {
+    if (!isAdmin()) return alert('Entre como administrador para concluir a venda.');
+    if (!confirm('Confirmar o recebimento do comprovante e concluir esta venda?')) return;
+    try {
+      await request('/orders/' + encodeURIComponent(id) + '/complete', { method: 'POST' });
+      await reloadAdmin();
+      toast('Venda concluída, estoque e caixa atualizados');
+    } catch (error) {
+      alert('Não foi possível concluir a venda: ' + error.message);
+    }
+  };
 
   $('adminLoginForm').addEventListener('submit', async event => {
     event.preventDefault(); event.stopImmediatePropagation();
