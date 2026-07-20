@@ -214,6 +214,22 @@
     }
   };
 
+  window.refundSale = async id => {
+    if (!isAdmin()) return alert('Entre como administrador para estornar a venda.');
+    const choice = prompt('ESTORNAR VENDA\n\nDigite 1: produto em bom estado (volta ao estoque)\nDigite 2: produto com defeito (não volta ao estoque)\n\nPara sair, toque em Cancelar.');
+    if (choice === null) return;
+    if (choice !== '1' && choice !== '2') return alert('Escolha 1 ou 2.');
+    const returnToStock = choice === '1';
+    if (!confirm(`Confirmar estorno? ${returnToStock ? 'Os produtos voltarão ao estoque.' : 'Os produtos defeituosos não voltarão ao estoque.'}`)) return;
+    try {
+      await request('/orders/' + encodeURIComponent(id) + '/refund', { method: 'POST', body: JSON.stringify({ returnToStock }) });
+      await reloadAdmin();
+      toast('Venda estornada e caixa atualizado');
+    } catch (error) {
+      alert('Não foi possível estornar a venda: ' + error.message);
+    }
+  };
+
   $('adminLoginForm').addEventListener('submit', async event => {
     event.preventDefault(); event.stopImmediatePropagation();
     const value = $('adminLoginPassword').value;

@@ -319,6 +319,30 @@ async function api(request, env, url) {
     return json({ ok: true });
   }
 
+  const refundMatch = url.pathname.match(/^\/api\/orders\/([^/]+)\/refund$/);
+  if (refundMatch && request.method === "POST") {
+    if (!(await adminAllowed(request, env))) return json({ error: "Senha administrativa inválida." }, 401);
+    const code = decodeURIComponent(refundMatch[1]);
+    const body = await readBody(request);
+    const returnToStock = body.returnToStock === true;
+    const order = await env.DB.prepare("SELECT * FROM pedidos WHERE codigo=?").bind(code).first();
+    if (!order) return json({ error: "Venda não encontrada." }, 404);
+    if (String(order.status).startsWith("estornado")) return json({ ok: true, alreadyRefunded: true });
+    if (order.status !== "concluido") return json({ error: "Somente vendas concluídas podem ser estornadas." }, 409);
+    const result = await env.DB.prepare("SELECT * FROM itens_pedido WHERE pedido_id=?").bind(order.id).all();
+    const statements = [];
+    if (returnToStock) for (const item of result.results || []) statements.push(
+      env.DB.prepare("UPDATE produtos SET estoque=estoque+?,atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(item.quantidade, item.produto_id),
+      env.DB.prepare("INSERT INTO movimentacoes_estoque(produto_id,tipo,quantidade,estoque_anterior,estoque_novo,motivo,pedido_id) SELECT id,'entrada',?,estoque-?,estoque,?,? FROM produtos WHERE id=?").bind(item.quantidade, item.quantidade, "Devolução " + code, order.id, item.produto_id)
+    );
+    statements.push(
+      env.DB.prepare("INSERT INTO caixa(tipo,descricao,valor,metodo,pedido_id) VALUES('out',?,?,?,?)").bind("Estorno " + code, num(order.total), order.forma_pagamento || "Pix", order.id),
+      env.DB.prepare("UPDATE pedidos SET status=?,observacoes=?,atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(returnToStock ? "estornado_estoque" : "estornado_defeito", returnToStock ? "Venda estornada; produtos devolvidos ao estoque." : "Venda estornada; produto com defeito não retornou ao estoque disponível.", order.id)
+    );
+    await env.DB.batch(statements);
+    return json({ ok: true, returnToStock });
+  }
+
   return json({ error: "Rota não encontrada." }, 404);
 }
 

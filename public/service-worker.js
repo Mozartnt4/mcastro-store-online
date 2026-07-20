@@ -1,7 +1,8 @@
-const CACHE_NAME = 'mcastro-v45';
+const CACHE_NAME = 'mcastro-v50';
 const ASSETS = [
   './', './index.html', './styles.css', './app.js', './enhanced.js',
   './online.js', './service-worker.js', './qrcode.min.js', './manifest.webmanifest',
+  './assets/store-hero-v1.webp',
   './icons/icon-192.png', './icons/icon-512.png'
 ];
 
