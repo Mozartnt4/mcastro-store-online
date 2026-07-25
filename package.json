@@ -7,7 +7,7 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "check": "node --check src/index.js && node --check public/app.js && node --check public/enhanced.js && node --check public/online.js && node --check public/service-worker.js",
-    "test": "npm run check"
+    "test": "npm run check && node --test"
   },
   "devDependencies": {
     "wrangler": "^4.45.0"

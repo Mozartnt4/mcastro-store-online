@@ -12,7 +12,11 @@ Esta versão mantém o layout existente e troca o armazenamento principal pelo C
 - retirada ou entrega com endereço;
 - PIX e encaminhamento ao WhatsApp;
 - baixa automática de estoque;
+- reserva imediata de estoque em pedidos públicos e devolução ao cancelar;
 - pedido, baixa de estoque, movimentação e caixa gravados de forma atômica;
+- proteção contra operações duplicadas de caixa e estoque;
+- senha administrativa protegida com PBKDF2 e bloqueio temporário após tentativas inválidas;
+- backup administrativo completo do D1, sem incluir a senha;
 - vendas administrativas, clientes, caixa e configurações sincronizados no D1;
 - valores e taxa de entrega calculados novamente no servidor;
 - migração automática do esquema antigo do D1 sem apagar dados;
@@ -42,5 +46,5 @@ O Worker cria e atualiza as colunas necessárias automaticamente no primeiro ace
 
 ## Verificação local
 
-Execute `npm test` para validar a sintaxe de todos os arquivos JavaScript. O modo
+Execute `npm test` para validar a sintaxe e os testes de segurança. O modo
 de desenvolvimento do Wrangler depende de uma plataforma suportada pelo `workerd`.

@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#6d28d9">
+  <meta name="theme-color" content="#080808">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="styles.css">
-  <title>MCastro Store Pro</title>
+  <title>MCastro Solutions — Loja e Gestão</title>
 </head>
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><div class="logo">MC</div><div><strong>MCastro Store</strong><small>PRO</small></div></div>
+    <div class="brand"><img class="brandLogo" src="assets/mcastro-solutions-logo.jpg" alt="MCastro Solutions"><div><strong>MCastro</strong><small>SOLUTIONS</small></div></div>
     <nav>
       <button class="nav active" data-view="dashboard">⌂ <span>Dashboard</span></button>
       <button class="nav" data-view="products">▣ <span>Produtos</span></button>
@@ -83,7 +83,7 @@
     <section id="salesView" class="view">
       <div class="publicStoreHero publicOnly">
         <div class="publicHeroCopy"><span class="storeTag">✨ LOJA ONLINE</span><h2 id="publicStoreName">MCastro Solutions</h2><p>Encontre seus favoritos, compre com tranquilidade e escolha como deseja receber.</p><div class="heroMiniTrust"><span>🔒 Compra segura</span><span>💬 Atendimento humano</span></div></div>
-        <picture class="publicHeroArt"><source srcset="assets/store-hero-v1.webp" type="image/webp"><img src="assets/store-hero-v1.webp" alt="Compras online simples e modernas"></picture>
+        <picture class="publicHeroArt"><img src="assets/mcastro-solutions-logo.jpg" alt="Identidade MCastro Solutions"></picture>
         <div class="storeTrust"><span>✓ Compra rápida</span><span>✓ Estoque atualizado</span><span>✓ Pedido pelo WhatsApp</span></div>
       </div>
       <div id="publicCategoryChips" class="categoryChips publicOnly"></div>
@@ -139,7 +139,7 @@
       <div class="columns">
         <article class="panel"><h3>Identidade pública</h3><label>Nome da loja<input id="storeName" value="MCastro Solutions"></label><label>Chave Pix<input id="pixKey" placeholder="Sua chave Pix"></label><label>WhatsApp<input id="whatsapp" placeholder="5599999999999"></label><label>Taxa de entrega fixa<input id="deliveryFee" type="number" min="0" step="0.01" value="0"></label><label>Senha do administrador<input id="adminPassword" type="password" placeholder="Defina uma senha segura"></label><label>Cloudinary — Cloud Name<input id="cloudinaryCloudName" placeholder="Ex.: fzklkuxa"></label><label>Cloudinary — Upload Preset<input id="cloudinaryUploadPreset" placeholder="Ex.: mcastro_produtos"></label><button class="primary" id="saveSettings">Salvar configurações</button><div class="cloudinaryTest"><h4>Teste de imagens na nuvem</h4><p>Escolha uma foto para confirmar o envio ao Cloudinary antes de cadastrar produtos.</p><label class="secondary file">Selecionar foto de teste<input id="cloudinaryTestFile" type="file" accept="image/*" hidden></label><div id="cloudinaryTestStatus" class="uploadStatus">Nenhum teste realizado.</div><img id="cloudinaryTestPreview" class="cloudinaryTestPreview" alt="Prévia da imagem enviada" hidden><textarea id="cloudinaryTestUrl" rows="3" readonly placeholder="O link público aparecerá aqui após o envio"></textarea><div class="storeQrActions"><button class="secondary" id="copyCloudinaryTestUrl" type="button" disabled>Copiar link</button><button class="secondary" id="openCloudinaryTestUrl" type="button" disabled>Abrir imagem</button></div></div></article>
         <article class="panel"><h3>QR público da loja</h3><p>Este QR abre somente o catálogo para o cliente comprar.</p><label>Link público do catálogo<input id="catalogUrl" placeholder="https://seuprojeto.pages.dev/?modo=catalogo"></label><div id="localCatalogStatus" class="uploadStatus">Verificando produtos deste endereço...</div><div id="storeQr" class="storeQr"></div><textarea id="catalogLink" rows="2" readonly></textarea><div class="storeQrActions"><button class="secondary" id="copyCatalogLink" type="button">Copiar link</button><button class="secondary" id="shareCatalog" type="button">Compartilhar</button><button class="primary" id="printStoreQr" type="button">Imprimir QR</button></div></article>
-        <article class="panel"><h3>Testes e acesso</h3><p>Abra o catálogo público no mesmo aparelho ou encerre o acesso administrativo.</p><div class="storeQrActions"><button class="secondary" id="previewCatalog" type="button">Ver catálogo público</button><button class="secondary" id="logoutAdmin" type="button">Sair do administrador</button></div><p class="labelNote">Senha inicial: <strong>1234</strong>. Altere-a antes de publicar.</p></article><article class="panel"><h3>Backup</h3><p>Baixe uma cópia completa antes de trocar de aparelho ou navegador.</p><button class="primary" id="backup">Baixar backup</button><label class="secondary file">Restaurar backup<input id="restore" type="file" accept=".json" hidden></label></article>
+        <article class="panel"><h3>Testes e acesso</h3><p>Abra o catálogo público no mesmo aparelho ou encerre o acesso administrativo.</p><div class="storeQrActions"><button class="secondary" id="previewCatalog" type="button">Ver catálogo público</button><button class="secondary" id="logoutAdmin" type="button">Sair do administrador</button></div><p class="labelNote">Senha inicial: <strong>1234</strong>. Altere-a antes de publicar.</p></article><article class="panel"><h3>Backup do banco online</h3><p>Baixe uma cópia administrativa do D1 com produtos, clientes, pedidos, estoque e caixa. A senha não é incluída.</p><button class="primary" id="backup">Baixar backup D1</button><p class="labelNote">A restauração automática foi desativada para evitar sobrescrever dados financeiros por engano.</p></article>
       </div>
     </section>
   </main>

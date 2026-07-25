@@ -87,3 +87,40 @@ body.public-mode .sidebar,body.public-mode header,body.public-mode .bottom{displ
 .publicHeroArt{overflow:hidden;min-width:0}.publicHeroArt img{display:block;width:100%;max-width:none;height:100%;object-fit:cover}
 @media(max-width:700px){.publicHeroArt{width:calc(100% + 40px);height:auto;aspect-ratio:1672/941;margin:10px -20px 0}.publicHeroArt img{width:100%;height:100%;object-fit:cover;object-position:center}.bottom{grid-template-columns:repeat(6,minmax(0,1fr));padding-inline:2px}.bottom button{min-width:0;padding-inline:1px}.bottom small{font-size:8px;white-space:nowrap}.bottom .plus{width:38px;height:38px}}
 @media(max-width:390px){.publicHeroArt{height:auto;aspect-ratio:1672/941}.publicHeroCopy h2{font-size:clamp(25px,8vw,29px)}}
+
+/* Identidade MCastro Solutions — preto, ouro e prata */
+:root{
+  --bg:#f7f5f0;--surface:#fff;--surface2:#f5f3ee;--text:#171512;--muted:#716b61;
+  --primary:#a66a16;--primary2:#d6a84d;--border:#e2ddd2;--green:#18785e;
+  --shadow:0 18px 50px rgba(25,19,10,.10)
+}
+body{background:radial-gradient(circle at 88% 0,rgba(214,168,77,.16),transparent 26%),var(--bg)}
+.sidebar{background:linear-gradient(180deg,#080808,#17130d 58%,#050505);border-right:1px solid rgba(214,168,77,.25)}
+.brandLogo{width:48px;height:48px;object-fit:cover;object-position:center;border-radius:14px;border:1px solid rgba(236,194,105,.55);box-shadow:0 8px 22px rgba(0,0,0,.4)}
+.brand strong{letter-spacing:.02em}.brand small{color:#d6a84d}
+.nav.active,.nav:hover{background:linear-gradient(90deg,rgba(214,168,77,.22),rgba(255,255,255,.06));color:#f6d58d}
+.primary,.checkout{background:linear-gradient(135deg,#8a5511,#d6a84d 55%,#f0cf84);color:#171008;box-shadow:0 10px 24px rgba(166,106,22,.22)}
+.secondary{background:linear-gradient(180deg,#fff,#f2efe8)}
+.hero,.catalogHero{background:linear-gradient(135deg,#090909,#21190e 58%,#70430d);box-shadow:0 22px 55px rgba(45,29,8,.25)}
+.hero p,.catalogHero p{color:#ddd5c7}.catalogEyebrow,.storeTag{color:#e7c270}
+.price,.publicPrice,.saleProduct span{color:#9a6215}
+.qrAction,.categoryChip.active{background:#f7ecd4!important;color:#7a4b0d!important;border-color:#d9b66f}
+.categoryChip.active{box-shadow:0 8px 18px rgba(166,106,22,.17)}
+.cartPanel{border-top-color:#d6a84d}
+.publicStoreHero{
+  background:linear-gradient(110deg,#050505 0%,#17130d 43%,#51320c 100%);
+  box-shadow:0 22px 55px rgba(24,17,7,.28)
+}
+.publicStoreHero:before{background:rgba(214,168,77,.18)}
+.publicHeroArt{background:#030303}
+.publicHeroArt img{object-fit:cover;object-position:center 49%;filter:contrast(1.03) saturate(.9)}
+.storeTrust{background:rgba(7,7,7,.78);border:1px solid rgba(214,168,77,.22)}
+.publicBadge{background:#f7ecd4;color:#75470c}
+.bottom{background:rgba(8,8,8,.98);border-top:1px solid rgba(214,168,77,.25)}
+.bottom .plus{background:linear-gradient(135deg,#8a5511,#e6bd68);color:#171008}
+input:focus,select:focus,textarea:focus{border-color:#c28a31;box-shadow:0 0 0 4px rgba(194,138,49,.13)}
+@media(max-width:700px){
+  .storeTrust{background:#171008}
+  .publicHeroArt{aspect-ratio:1.45/1}
+  .publicHeroArt img{object-position:center 50%}
+}

@@ -247,6 +247,28 @@
     if (oldLogout) oldLogout.call($('logoutAdmin'), event);
   };
 
+  $('backup').onclick = async () => {
+    if (!isAdmin()) return alert('Entre como administrador para gerar o backup.');
+    const button = $('backup');
+    button.disabled = true;
+    button.textContent = 'Preparando backup...';
+    try {
+      const backup = await request('/admin/backup');
+      const link = document.createElement('a');
+      const objectUrl = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
+      link.href = objectUrl;
+      link.download = `backup-d1-mcastro-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      toast('Backup completo do D1 gerado');
+    } catch (error) {
+      alert('Não foi possível gerar o backup: ' + error.message);
+    } finally {
+      button.disabled = false;
+      button.textContent = 'Baixar backup D1';
+    }
+  };
+
   const cachedProducts = (() => { try { return JSON.parse(localStorage.getItem(KEY) || '{}').products || []; } catch (_) { return []; } })();
   askAdminOnDirectAccess().then(async allowed => {
     if (!allowed) return;

@@ -6,11 +6,40 @@ const json = (data, status = 200, extra = {}) => new Response(JSON.stringify(dat
 const clean = (v) => String(v ?? "").trim();
 const num = (v, fallback = 0) => Number.isFinite(Number(v)) ? Number(v) : fallback;
 const integer = (v, fallback = 0) => Number.isInteger(Number(v)) ? Number(v) : fallback;
+const safeHttpsUrl = (v) => {
+  try {
+    const url = new URL(clean(v));
+    return url.protocol === "https:" ? url.href : "";
+  } catch { return ""; }
+};
 
 async function sha256(value) {
   const bytes = new TextEncoder().encode(String(value));
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function hex(bytes) {
+  return [...new Uint8Array(bytes)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function passwordHash(value, salt = crypto.randomUUID().replace(/-/g, "")) {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(String(value)), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({
+    name: "PBKDF2", hash: "SHA-256", salt: new TextEncoder().encode(salt), iterations: 210000
+  }, key, 256);
+  return `pbkdf2_sha256$210000$${salt}$${hex(bits)}`;
+}
+
+async function passwordMatches(supplied, stored) {
+  if (!stored) return false;
+  if (!stored.startsWith("pbkdf2_sha256$")) return (await sha256(supplied)) === stored;
+  const [, iterations, salt, expected] = stored.split("$");
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(String(supplied)), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({
+    name: "PBKDF2", hash: "SHA-256", salt: new TextEncoder().encode(salt), iterations: integer(iterations)
+  }, key, 256);
+  return hex(bits) === expected;
 }
 
 function productFromRow(r) {
@@ -19,7 +48,7 @@ function productFromRow(r) {
     category: r.categoria || "Outros", subcategory: r.subcategoria || "", unit: r.unidade || "Unidade",
     brand: r.marca || "", model: r.modelo || "", supplier: r.fornecedor || "", location: r.localizacao_estoque || "",
     warranty: num(r.garantia), cost: num(r.preco_custo), margin: num(r.margem), price: num(r.preco_venda),
-    stock: num(r.estoque), min: num(r.estoque_minimo), image: r.imagem_url || "",
+    stock: num(r.estoque), min: num(r.estoque_minimo), image: safeHttpsUrl(r.imagem_url),
     published: num(r.publicado, 1) === 1, active: num(r.ativo, 1) === 1,
     createdAt: r.criado_em, updatedAt: r.atualizado_em
   };
@@ -56,8 +85,11 @@ async function ensureSchema(env) {
     `CREATE TABLE IF NOT EXISTS movimentacoes_estoque (id INTEGER PRIMARY KEY AUTOINCREMENT, produto_id INTEGER NOT NULL, tipo TEXT NOT NULL, quantidade INTEGER NOT NULL, estoque_anterior INTEGER DEFAULT 0, estoque_novo INTEGER DEFAULT 0, motivo TEXT, pedido_id INTEGER, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
     `CREATE TABLE IF NOT EXISTS configuracoes (chave TEXT PRIMARY KEY, valor TEXT, atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
     `CREATE TABLE IF NOT EXISTS caixa (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT NOT NULL, descricao TEXT, valor REAL NOT NULL, metodo TEXT, pedido_id INTEGER, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
+    `CREATE TABLE IF NOT EXISTS tentativas_admin (ip TEXT PRIMARY KEY, tentativas INTEGER DEFAULT 0, bloqueado_ate TEXT, atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
     `CREATE INDEX IF NOT EXISTS idx_produtos_publicado ON produtos(publicado, ativo)`,
     `CREATE INDEX IF NOT EXISTS idx_pedidos_cliente ON pedidos(cliente_id)`,
+    `CREATE TRIGGER IF NOT EXISTS trg_caixa_pedido_unico BEFORE INSERT ON caixa WHEN NEW.pedido_id IS NOT NULL AND EXISTS(SELECT 1 FROM caixa WHERE pedido_id=NEW.pedido_id AND tipo=NEW.tipo) BEGIN SELECT RAISE(ABORT, 'movimento_caixa_duplicado'); END`,
+    `CREATE TRIGGER IF NOT EXISTS trg_movimento_pedido_unico BEFORE INSERT ON movimentacoes_estoque WHEN NEW.pedido_id IS NOT NULL AND EXISTS(SELECT 1 FROM movimentacoes_estoque WHERE pedido_id=NEW.pedido_id AND produto_id=NEW.produto_id AND tipo=NEW.tipo) BEGIN SELECT RAISE(ABORT, 'movimento_estoque_duplicado'); END`,
     `CREATE TRIGGER IF NOT EXISTS trg_produtos_estoque_valido BEFORE UPDATE OF estoque ON produtos WHEN NEW.estoque < 0 BEGIN SELECT RAISE(ABORT, 'estoque_insuficiente'); END`,
     `INSERT OR IGNORE INTO configuracoes(chave,valor) VALUES ('admin_password','1234')`,
     `INSERT OR IGNORE INTO configuracoes(chave,valor) VALUES ('storeName','MCastro Solutions')`,
@@ -94,10 +126,28 @@ async function settingsObject(env, admin = false) {
 async function adminAllowed(request, env) {
   const supplied = request.headers.get("x-admin-password") || "";
   if (!supplied) return false;
+  const ip = request.headers.get("cf-connecting-ip") || "unknown";
+  const attempt = await env.DB.prepare("SELECT tentativas,bloqueado_ate FROM tentativas_admin WHERE ip=?").bind(ip).first();
+  if (attempt?.bloqueado_ate && new Date(attempt.bloqueado_ate).getTime() > Date.now()) return false;
   const rows = await env.DB.prepare("SELECT chave,valor FROM configuracoes WHERE chave IN ('admin_password','admin_password_hash')").all();
   const values = Object.fromEntries((rows.results || []).map(r => [r.chave, r.valor]));
-  if (values.admin_password_hash) return (await sha256(supplied)) === values.admin_password_hash;
-  return supplied === (values.admin_password || "1234");
+  const allowed = values.admin_password_hash
+    ? await passwordMatches(supplied, values.admin_password_hash)
+    : supplied === (values.admin_password || "1234");
+  if (allowed) {
+    if (!values.admin_password_hash) {
+      await env.DB.batch([
+        env.DB.prepare("INSERT INTO configuracoes(chave,valor,atualizado_em) VALUES('admin_password_hash',?,CURRENT_TIMESTAMP) ON CONFLICT(chave) DO UPDATE SET valor=excluded.valor,atualizado_em=CURRENT_TIMESTAMP").bind(await passwordHash(supplied)),
+        env.DB.prepare("DELETE FROM configuracoes WHERE chave='admin_password'")
+      ]);
+    }
+    await env.DB.prepare("DELETE FROM tentativas_admin WHERE ip=?").bind(ip).run();
+    return true;
+  }
+  const failures = integer(attempt?.tentativas) + 1;
+  const blockedUntil = failures >= 5 ? new Date(Date.now() + 15 * 60 * 1000).toISOString() : null;
+  await env.DB.prepare("INSERT INTO tentativas_admin(ip,tentativas,bloqueado_ate,atualizado_em) VALUES(?,?,?,CURRENT_TIMESTAMP) ON CONFLICT(ip) DO UPDATE SET tentativas=excluded.tentativas,bloqueado_ate=excluded.bloqueado_ate,atualizado_em=CURRENT_TIMESTAMP").bind(ip, failures, blockedUntil).run();
+  return false;
 }
 
 async function customerUpsert(env, input) {
@@ -150,7 +200,7 @@ async function api(request, env, url) {
   }
 
   if (url.pathname === "/api/admin/login" && request.method === "POST") {
-    return (await adminAllowed(request, env)) ? json({ ok: true }) : json({ ok: false, error: "Senha inválida." }, 401);
+    return (await adminAllowed(request, env)) ? json({ ok: true }) : json({ ok: false, error: "Senha inválida ou acesso temporariamente bloqueado." }, 401);
   }
 
   if (url.pathname === "/api/products" && request.method === "POST") {
@@ -158,7 +208,7 @@ async function api(request, env, url) {
     const p = await readBody(request);
     if (!clean(p.name)) return json({ error: "Informe o nome do produto." }, 400);
     if (!(num(p.price) > 0)) return json({ error: "Informe um preço válido." }, 400);
-    const vals = [clean(p.sku) || null, clean(p.name), clean(p.description), clean(p.category) || "Outros", clean(p.subcategory), clean(p.unit) || "Unidade", clean(p.brand), clean(p.model), clean(p.supplier), clean(p.location), num(p.warranty), num(p.cost), num(p.margin), num(p.price), Math.max(0, Math.floor(num(p.stock))), Math.max(0, Math.floor(num(p.min))), clean(p.image), p.published === false ? 0 : 1];
+    const vals = [clean(p.sku) || null, clean(p.name), clean(p.description), clean(p.category) || "Outros", clean(p.subcategory), clean(p.unit) || "Unidade", clean(p.brand), clean(p.model), clean(p.supplier), clean(p.location), num(p.warranty), num(p.cost), num(p.margin), num(p.price), Math.max(0, Math.floor(num(p.stock))), Math.max(0, Math.floor(num(p.min))), safeHttpsUrl(p.image), p.published === false ? 0 : 1];
     const id = Number(p.id);
     if (Number.isInteger(id) && id > 0) {
       await env.DB.prepare(`UPDATE produtos SET sku=?,nome=?,descricao=?,categoria=?,subcategoria=?,unidade=?,marca=?,modelo=?,fornecedor=?,localizacao_estoque=?,garantia=?,preco_custo=?,margem=?,preco_venda=?,estoque=?,estoque_minimo=?,imagem_url=?,publicado=?,atualizado_em=CURRENT_TIMESTAMP WHERE id=?`).bind(...vals, id).run();
@@ -185,7 +235,7 @@ async function api(request, env, url) {
     }
     if (body.adminPassword !== undefined) {
       await env.DB.batch([
-        env.DB.prepare("INSERT INTO configuracoes(chave,valor,atualizado_em) VALUES('admin_password_hash',?,CURRENT_TIMESTAMP) ON CONFLICT(chave) DO UPDATE SET valor=excluded.valor, atualizado_em=CURRENT_TIMESTAMP").bind(await sha256(body.adminPassword)),
+        env.DB.prepare("INSERT INTO configuracoes(chave,valor,atualizado_em) VALUES('admin_password_hash',?,CURRENT_TIMESTAMP) ON CONFLICT(chave) DO UPDATE SET valor=excluded.valor, atualizado_em=CURRENT_TIMESTAMP").bind(await passwordHash(body.adminPassword)),
         env.DB.prepare("DELETE FROM configuracoes WHERE chave='admin_password'")
       ]);
     }
@@ -214,6 +264,20 @@ async function api(request, env, url) {
     const createdAt = /^\d{4}-\d{2}-\d{2}T/.test(clean(body.date)) ? clean(body.date) : new Date().toISOString();
     const result = await env.DB.prepare("INSERT INTO caixa(tipo,descricao,valor,metodo,criado_em) VALUES(?,?,?,?,?)").bind(type, clean(body.description), value, clean(body.method), createdAt).run();
     return json({ ok: true, id: String(result.meta.last_row_id) }, 201);
+  }
+
+  if (url.pathname === "/api/admin/backup" && request.method === "GET") {
+    if (!(await adminAllowed(request, env))) return json({ error: "Senha administrativa inválida." }, 401);
+    const tables = ["produtos", "clientes", "pedidos", "itens_pedido", "movimentacoes_estoque", "configuracoes", "caixa"];
+    const backup = { version: 1, generatedAt: new Date().toISOString(), data: {} };
+    for (const table of tables) {
+      const result = await env.DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all();
+      backup.data[table] = result.results || [];
+    }
+    if (backup.data.configuracoes) {
+      backup.data.configuracoes = backup.data.configuracoes.filter(row => !["admin_password", "admin_password_hash"].includes(row.chave));
+    }
+    return json(backup);
   }
 
   if (url.pathname === "/api/orders" && request.method === "POST") {
@@ -264,9 +328,9 @@ async function api(request, env, url) {
     const statements = [env.DB.prepare(`INSERT INTO pedidos(codigo,cliente_id,cliente_nome,cliente_whatsapp,status,tipo_entrega,endereco_entrega,maps_link,forma_pagamento,parcelas,subtotal,taxa_entrega,desconto,total,custo_total,lucro,observacoes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(code, customerId || null, name, phone, isAdmin ? "concluido" : "aguardando_comprovante", body.deliveryMethod === "delivery" ? "delivery" : "pickup", address, clean(body.mapsLink), payment, installments, subtotal, deliveryFee, discount, total, costTotal, total - costTotal, clean(body.notes))];
     for (const { p, qty } of normalized) {
       statements.push(env.DB.prepare("INSERT INTO itens_pedido(pedido_id,produto_id,nome_produto,quantidade,preco_unitario,custo_unitario,subtotal) VALUES((SELECT id FROM pedidos WHERE codigo=?),?,?,?,?,?,?)").bind(code, p.id, p.nome, qty, num(p.preco_venda), num(p.preco_custo), num(p.preco_venda) * qty));
-      if (isAdmin) statements.push(
+      statements.push(
         env.DB.prepare("UPDATE produtos SET estoque=estoque-?,atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(qty, p.id),
-        env.DB.prepare("INSERT INTO movimentacoes_estoque(produto_id,tipo,quantidade,estoque_anterior,estoque_novo,motivo,pedido_id) SELECT id,'saida',?,estoque+?,estoque,?,(SELECT id FROM pedidos WHERE codigo=?) FROM produtos WHERE id=?").bind(qty, qty, "Venda " + code, code, p.id)
+        env.DB.prepare("INSERT INTO movimentacoes_estoque(produto_id,tipo,quantidade,estoque_anterior,estoque_novo,motivo,pedido_id) SELECT id,?, ?,estoque+?,estoque,?,(SELECT id FROM pedidos WHERE codigo=?) FROM produtos WHERE id=?").bind(isAdmin ? "saida" : "reserva", qty, qty, (isAdmin ? "Venda " : "Reserva do pedido ") + code, code, p.id)
       );
     }
     if (isAdmin) statements.push(env.DB.prepare("INSERT INTO caixa(tipo,descricao,valor,metodo,pedido_id) VALUES('in',?,?,?,(SELECT id FROM pedidos WHERE codigo=?))").bind("Pedido " + code, total, payment, code));
@@ -287,20 +351,13 @@ async function api(request, env, url) {
     if (!order) return json({ error: "Pedido não encontrado." }, 404);
     if (order.status === "concluido") return json({ ok: true, alreadyCompleted: true });
     if (order.status !== "aguardando_comprovante") return json({ error: "Este pedido não está aguardando comprovante." }, 409);
-    const result = await env.DB.prepare("SELECT i.*,p.estoque FROM itens_pedido i JOIN produtos p ON p.id=i.produto_id WHERE i.pedido_id=?").bind(order.id).all();
-    const items = result.results || [];
-    for (const item of items) if (num(item.estoque) < num(item.quantidade)) return json({ error: `Estoque insuficiente para ${item.nome_produto}.` }, 409);
-    const statements = [];
-    for (const item of items) statements.push(
-      env.DB.prepare("UPDATE produtos SET estoque=estoque-?,atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(item.quantidade, item.produto_id),
-      env.DB.prepare("INSERT INTO movimentacoes_estoque(produto_id,tipo,quantidade,estoque_anterior,estoque_novo,motivo,pedido_id) SELECT id,'saida',?,estoque+?,estoque,?,? FROM produtos WHERE id=?").bind(item.quantidade, item.quantidade, "Venda concluída " + code, order.id, item.produto_id)
-    );
-    statements.push(
+    const statements = [
       env.DB.prepare("INSERT INTO caixa(tipo,descricao,valor,metodo,pedido_id) VALUES('in',?,?,?,?)").bind("Pedido " + code, num(order.total), order.forma_pagamento || "Pix", order.id),
       env.DB.prepare("UPDATE pedidos SET status='concluido',atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(order.id)
-    );
+    ];
     try { await env.DB.batch(statements); }
     catch (error) {
+      if (/movimento_caixa_duplicado/i.test(String(error?.message))) return json({ ok: true, alreadyCompleted: true });
       if (/estoque_insuficiente/i.test(String(error?.message))) return json({ error: "Estoque insuficiente para concluir a venda." }, 409);
       throw error;
     }
@@ -315,7 +372,18 @@ async function api(request, env, url) {
     if (!order) return json({ error: "Pedido não encontrado." }, 404);
     if (order.status === "cancelado") return json({ ok: true, alreadyCanceled: true });
     if (order.status !== "aguardando_comprovante") return json({ error: "Somente pedidos aguardando comprovante podem ser cancelados." }, 409);
-    await env.DB.prepare("UPDATE pedidos SET status='cancelado',atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(order.id).run();
+    const result = await env.DB.prepare("SELECT * FROM itens_pedido WHERE pedido_id=?").bind(order.id).all();
+    const statements = [];
+    for (const item of result.results || []) statements.push(
+      env.DB.prepare("UPDATE produtos SET estoque=estoque+?,atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(item.quantidade, item.produto_id),
+      env.DB.prepare("INSERT INTO movimentacoes_estoque(produto_id,tipo,quantidade,estoque_anterior,estoque_novo,motivo,pedido_id) SELECT id,'liberacao',?,estoque-?,estoque,?,? FROM produtos WHERE id=?").bind(item.quantidade, item.quantidade, "Cancelamento " + code, order.id, item.produto_id)
+    );
+    statements.push(env.DB.prepare("UPDATE pedidos SET status='cancelado',atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(order.id));
+    try { await env.DB.batch(statements); }
+    catch (error) {
+      if (/movimento_estoque_duplicado/i.test(String(error?.message))) return json({ ok: true, alreadyCanceled: true });
+      throw error;
+    }
     return json({ ok: true });
   }
 
@@ -339,7 +407,11 @@ async function api(request, env, url) {
       env.DB.prepare("INSERT INTO caixa(tipo,descricao,valor,metodo,pedido_id) VALUES('out',?,?,?,?)").bind("Estorno " + code, num(order.total), order.forma_pagamento || "Pix", order.id),
       env.DB.prepare("UPDATE pedidos SET status=?,observacoes=?,atualizado_em=CURRENT_TIMESTAMP WHERE id=?").bind(returnToStock ? "estornado_estoque" : "estornado_defeito", returnToStock ? "Venda estornada; produtos devolvidos ao estoque." : "Venda estornada; produto com defeito não retornou ao estoque disponível.", order.id)
     );
-    await env.DB.batch(statements);
+    try { await env.DB.batch(statements); }
+    catch (error) {
+      if (/movimento_caixa_duplicado/i.test(String(error?.message))) return json({ ok: true, alreadyRefunded: true });
+      throw error;
+    }
     return json({ ok: true, returnToStock });
   }
 
@@ -355,7 +427,9 @@ export default {
       return env.ASSETS.fetch(request);
     } catch (error) {
       console.error(error);
-      return url.pathname.startsWith("/api/") ? json({ error: error?.message || "Erro interno." }, 500) : new Response("Erro interno", { status: 500 });
+      return url.pathname.startsWith("/api/") ? json({ error: "Erro interno. Tente novamente ou consulte os registros do Worker." }, 500) : new Response("Erro interno", { status: 500 });
     }
   }
 };
+
+export const __test = { passwordHash, passwordMatches, safeHttpsUrl };

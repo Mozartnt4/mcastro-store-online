@@ -1,0 +1,14 @@
+Cartão de visitas — MCastro Solutions
+
+Arquivos:
+- cartao-frente.svg: frente do cartão.
+- cartao-verso-qr.svg: verso com QR Code da vitrine.
+- qr-vitrine.svg: QR Code separado.
+
+Tamanho do cartão: 90 × 50 mm.
+Link do QR:
+https://mcastro-store-online.mozartnto20.workers.dev/?modo=catalogo
+
+Os arquivos SVG são vetoriais e podem ser abertos no navegador, CorelDRAW,
+Illustrator ou Inkscape. Ao enviar para a gráfica, solicite sangria conforme
+as especificações do fornecedor.
