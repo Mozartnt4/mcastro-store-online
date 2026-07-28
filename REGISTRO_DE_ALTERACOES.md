@@ -17,4 +17,7 @@ Não apague registros anteriores.
 - Melhorado o texto e adicionada uma descrição acessível ao botão.
 - Arquivos alterados: `public/index.html` e `public/styles.css`.
 - Testes executados com `npm test`: 2 testes aprovados.
-- Git e Cloudflare: pendentes no momento deste registro.
+- Git: concluído no branch `main`, commit `a8ebbb5`.
+- Cloudflare: publicação pendente; o Wrangler não oferece o binário `workerd`
+  para Android ARM64 e não há credencial da API da Cloudflare disponível neste
+  ambiente.
