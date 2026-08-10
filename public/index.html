@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#080808">
+  <meta name="theme-color" content="#ff7a00">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.webmanifest">
@@ -217,6 +217,17 @@
   <h2 id="publicName"></h2>
   <div id="publicPrice" class="publicPrice"></div>
   <div id="publicDetails" class="publicDetails"></div>
+  <section class="reviewSection" aria-labelledby="reviewTitle">
+    <div class="reviewHeading"><div><h3 id="reviewTitle">Avaliações dos clientes</h3><p id="reviewSummary">Este produto ainda não foi avaliado.</p></div><div id="reviewAverage" class="reviewAverage">★ —</div></div>
+    <div id="reviewList" class="reviewList"></div>
+    <form id="reviewForm" class="reviewForm">
+      <h4>Conte como foi sua experiência</h4>
+      <label>Seu nome<input id="reviewName" maxlength="60" autocomplete="name" required></label>
+      <fieldset class="starPicker"><legend>Sua nota</legend><div><input type="radio" id="star5" name="reviewRating" value="5" required><label for="star5" title="5 estrelas">★</label><input type="radio" id="star4" name="reviewRating" value="4"><label for="star4" title="4 estrelas">★</label><input type="radio" id="star3" name="reviewRating" value="3"><label for="star3" title="3 estrelas">★</label><input type="radio" id="star2" name="reviewRating" value="2"><label for="star2" title="2 estrelas">★</label><input type="radio" id="star1" name="reviewRating" value="1"><label for="star1" title="1 estrela">★</label></div></fieldset>
+      <label>Comentário<textarea id="reviewComment" minlength="3" maxlength="500" rows="3" placeholder="O que você achou do produto?" required></textarea></label>
+      <button class="primary" type="submit">Enviar avaliação</button>
+    </form>
+  </section>
   <div class="publicProductActions"><button class="secondary" id="sharePublicProduct" type="button">Compartilhar produto</button><button class="primary" id="addPublicProduct" type="button">🛒 Adicionar ao carrinho</button></div><button class="checkout" id="buyWhatsapp">Comprar pelo WhatsApp</button>
 </div></div>
 
@@ -231,4 +242,5 @@
 <script src="app.js" defer></script>
 <script src="enhanced.js" defer></script>
 <script src="online.js" defer></script>
+<script src="reviews.js" defer></script>
 </body></html>

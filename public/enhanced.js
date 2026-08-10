@@ -412,7 +412,7 @@
     const a=(db.products||[]).filter(p=>p.published!==false&&Number(p.stock)>0&&(!publicCategory||p.category===publicCategory)&&(p.name+' '+p.sku+' '+p.category+' '+(p.subcategory||'')).toLowerCase().includes(q));
     $('saleProducts').innerHTML=a.length?a.map(p=>`<article class="saleProduct">
       <div onclick="showPublic('${p.id}')" role="button" tabindex="0"><img src="${p.image||blank}" alt="${esc(p.name)}"><small style="position:absolute;left:8px;top:8px;background:rgba(17,24,39,.86);color:white;padding:5px 7px;border-radius:999px">${categoryIcon(p.category)} ${esc(p.category)}</small></div>
-      <div class="saleProductContent"><strong>${esc(p.name)}</strong><small>${esc(p.subcategory||p.category)}</small><span>${money(p.price)}</span><small>${p.stock} disponível${p.stock===1?'':'is'}</small><button type="button" class="publicAddHint" onclick="addCart('${p.id}')">🛒 Adicionar</button></div>
+      <div class="saleProductContent"><strong>${esc(p.name)}</strong><small>${esc(p.subcategory||p.category)}</small><div class="productRating" aria-label="${Number(p.ratingAverage||0).toFixed(1)} de 5 estrelas"><span>★</span> ${p.ratingCount ? `${Number(p.ratingAverage).toFixed(1)} <small>(${p.ratingCount})</small>` : '<small>Novo</small>'}</div><span>${money(p.price)}</span><small>${p.stock} disponível${p.stock===1?'':'is'}</small><button type="button" class="publicAddHint" onclick="addCart('${p.id}')">🛒 Adicionar</button></div>
     </article>`).join(''):'<div class="empty">Nenhum produto disponível nesta categoria.</div>';
     renderPublicCategories();
   };

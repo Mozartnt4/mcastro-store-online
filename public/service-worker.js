@@ -1,9 +1,8 @@
-const CACHE_NAME = 'mcastro-v60';
+const CACHE_NAME = 'mcastro-v61';
 const ASSETS = [
   './', './index.html', './styles.css', './app.js', './enhanced.js',
-  './online.js', './service-worker.js', './qrcode.min.js', './manifest.webmanifest',
-  './assets/store-hero-v1.webp', './assets/mcastro-solutions-logo.jpg',
-  './icons/icon-192.png', './icons/icon-512.png'
+  './online.js', './reviews.js', './service-worker.js', './qrcode.min.js', './manifest.webmanifest',
+  './assets/store-hero-v1.webp', './assets/mcastro-solutions-logo.jpg'
 ];
 
 self.addEventListener('install', event => {

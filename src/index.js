@@ -50,6 +50,7 @@ function productFromRow(r) {
     warranty: num(r.garantia), cost: num(r.preco_custo), margin: num(r.margem), price: num(r.preco_venda),
     stock: num(r.estoque), min: num(r.estoque_minimo), image: safeHttpsUrl(r.imagem_url),
     published: num(r.publicado, 1) === 1, active: num(r.ativo, 1) === 1,
+    ratingAverage: num(r.media_avaliacao), ratingCount: integer(r.total_avaliacoes),
     createdAt: r.criado_em, updatedAt: r.atualizado_em
   };
 }
@@ -86,8 +87,10 @@ async function ensureSchema(env) {
     `CREATE TABLE IF NOT EXISTS configuracoes (chave TEXT PRIMARY KEY, valor TEXT, atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
     `CREATE TABLE IF NOT EXISTS caixa (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT NOT NULL, descricao TEXT, valor REAL NOT NULL, metodo TEXT, pedido_id INTEGER, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
     `CREATE TABLE IF NOT EXISTS tentativas_admin (ip TEXT PRIMARY KEY, tentativas INTEGER DEFAULT 0, bloqueado_ate TEXT, atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
+    `CREATE TABLE IF NOT EXISTS avaliacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, produto_id INTEGER NOT NULL, nome_cliente TEXT NOT NULL, nota INTEGER NOT NULL CHECK(nota BETWEEN 1 AND 5), comentario TEXT, ip_hash TEXT, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
     `CREATE INDEX IF NOT EXISTS idx_produtos_publicado ON produtos(publicado, ativo)`,
     `CREATE INDEX IF NOT EXISTS idx_pedidos_cliente ON pedidos(cliente_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_avaliacoes_produto ON avaliacoes(produto_id, criado_em)`,
     `CREATE TRIGGER IF NOT EXISTS trg_caixa_pedido_unico BEFORE INSERT ON caixa WHEN NEW.pedido_id IS NOT NULL AND EXISTS(SELECT 1 FROM caixa WHERE pedido_id=NEW.pedido_id AND tipo=NEW.tipo) BEGIN SELECT RAISE(ABORT, 'movimento_caixa_duplicado'); END`,
     `CREATE TRIGGER IF NOT EXISTS trg_movimento_pedido_unico BEFORE INSERT ON movimentacoes_estoque WHEN NEW.pedido_id IS NOT NULL AND EXISTS(SELECT 1 FROM movimentacoes_estoque WHERE pedido_id=NEW.pedido_id AND produto_id=NEW.produto_id AND tipo=NEW.tipo) BEGIN SELECT RAISE(ABORT, 'movimento_estoque_duplicado'); END`,
     `CREATE TRIGGER IF NOT EXISTS trg_produtos_estoque_valido BEFORE UPDATE OF estoque ON produtos WHEN NEW.estoque < 0 BEGIN SELECT RAISE(ABORT, 'estoque_insuficiente'); END`,
@@ -178,7 +181,8 @@ async function api(request, env, url) {
 
   if (url.pathname === "/api/bootstrap" && request.method === "GET") {
     const admin = url.searchParams.get("admin") === "1" && await adminAllowed(request, env);
-    const productSql = admin ? "SELECT * FROM produtos WHERE ativo=1 ORDER BY id DESC" : "SELECT * FROM produtos WHERE ativo=1 AND publicado=1 AND estoque>0 ORDER BY id DESC";
+    const ratingColumns = `, (SELECT ROUND(AVG(a.nota),1) FROM avaliacoes a WHERE a.produto_id=produtos.id) AS media_avaliacao, (SELECT COUNT(*) FROM avaliacoes a WHERE a.produto_id=produtos.id) AS total_avaliacoes`;
+    const productSql = admin ? `SELECT produtos.* ${ratingColumns} FROM produtos WHERE ativo=1 ORDER BY id DESC` : `SELECT produtos.* ${ratingColumns} FROM produtos WHERE ativo=1 AND publicado=1 AND estoque>0 ORDER BY id DESC`;
     const products = await env.DB.prepare(productSql).all();
     const payload = { products: (products.results || []).map(productFromRow), settings: await settingsObject(env, admin) };
     if (admin) {
@@ -201,6 +205,29 @@ async function api(request, env, url) {
 
   if (url.pathname === "/api/admin/login" && request.method === "POST") {
     return (await adminAllowed(request, env)) ? json({ ok: true }) : json({ ok: false, error: "Senha inválida ou acesso temporariamente bloqueado." }, 401);
+  }
+
+  const reviewMatch = url.pathname.match(/^\/api\/products\/(\d+)\/reviews$/);
+  if (reviewMatch && request.method === "GET") {
+    const productId = Number(reviewMatch[1]);
+    const reviews = await env.DB.prepare("SELECT id,nome_cliente,nota,comentario,criado_em FROM avaliacoes WHERE produto_id=? ORDER BY id DESC LIMIT 50").bind(productId).all();
+    const summary = await env.DB.prepare("SELECT ROUND(AVG(nota),1) media,COUNT(*) total FROM avaliacoes WHERE produto_id=?").bind(productId).first();
+    return json({ average: num(summary?.media), total: integer(summary?.total), reviews: (reviews.results || []).map(r => ({ id: String(r.id), name: r.nome_cliente, rating: integer(r.nota), comment: r.comentario || "", createdAt: r.criado_em })) });
+  }
+
+  if (reviewMatch && request.method === "POST") {
+    const productId = Number(reviewMatch[1]);
+    const product = await env.DB.prepare("SELECT id FROM produtos WHERE id=? AND ativo=1 AND publicado=1").bind(productId).first();
+    if (!product) return json({ error: "Produto não encontrado." }, 404);
+    const body = await readBody(request), name = clean(body.name), comment = clean(body.comment), rating = integer(body.rating);
+    if (name.length < 2 || name.length > 60) return json({ error: "Informe um nome válido." }, 400);
+    if (rating < 1 || rating > 5) return json({ error: "Escolha uma nota de 1 a 5 estrelas." }, 400);
+    if (comment.length < 3 || comment.length > 500) return json({ error: "O comentário deve ter entre 3 e 500 caracteres." }, 400);
+    const ipHash = await sha256(request.headers.get("cf-connecting-ip") || "unknown");
+    const recent = await env.DB.prepare("SELECT id FROM avaliacoes WHERE produto_id=? AND ip_hash=? AND criado_em>datetime('now','-10 minutes') LIMIT 1").bind(productId, ipHash).first();
+    if (recent) return json({ error: "Você já avaliou este produto recentemente." }, 429);
+    await env.DB.prepare("INSERT INTO avaliacoes(produto_id,nome_cliente,nota,comentario,ip_hash) VALUES(?,?,?,?,?)").bind(productId, name, rating, comment, ipHash).run();
+    return json({ ok: true }, 201);
   }
 
   if (url.pathname === "/api/products" && request.method === "POST") {
