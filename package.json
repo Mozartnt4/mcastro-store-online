@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "check": "node --check src/index.js && node --check public/app.js && node --check public/enhanced.js && node --check public/online.js && node --check public/reviews.js && node --check public/service-worker.js",
-    "test": "npm run check && node --test"
+    "check": "node --check src/index.js && node --check public/app.js && node --check public/enhanced.js && node --check public/online.js && node --check public/reviews.js && node --check public/service-worker.js && node --check src/tech.js && node --check src/tech-schema.js && node --check public/tech.js",
+    "test": "npm run check && node --test",
+    "preview:tech": "node tools/preview-tech.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.45.0"

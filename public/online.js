@@ -86,7 +86,7 @@
       name: $('pName').value.trim(), category: $('pCategory').value, subcategory: $('pSubcategory').value,
       unit: $('pUnit').value, sku: $('pSku').value.trim(), brand: $('pBrand').value.trim(), model: $('pModel').value.trim(),
       warranty: +$('pWarranty').value, supplier: $('pSupplier').value.trim(), location: $('pLocation').value.trim(),
-      cost: +$('pCost').value, margin: +$('pMargin').value, price: +$('pPrice').value,
+      cost: +$('pCost').value, replacementCost: +$('pReplacementCost').value || 0, margin: +$('pMargin').value, price: +$('pPrice').value,
       stock: +$('pStock').value, min: +$('pMin').value, image: photo, published: true
     };
     if (!product.name || !(product.price > 0) || product.stock < 0) return alert('Revise nome, preço e estoque.');

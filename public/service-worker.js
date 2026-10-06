@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mcastro-v61';
+const CACHE_NAME = 'mcastro-v62';
 const ASSETS = [
   './', './index.html', './styles.css', './app.js', './enhanced.js',
   './online.js', './reviews.js', './service-worker.js', './qrcode.min.js', './manifest.webmanifest',
@@ -20,6 +20,9 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const requestUrl = new URL(event.request.url);
+
+  // Dados privados e rotas Tech sempre exigem rede; nunca caem no HTML da Store.
+  if (requestUrl.pathname.startsWith('/api/') || requestUrl.pathname === '/tech' || requestUrl.pathname.startsWith('/tech/') || requestUrl.searchParams.get('modo') === 'admin' || event.request.headers.has('x-admin-password')) return;
 
   if (event.request.mode === 'navigate') {
     event.respondWith(

@@ -1,3 +1,5 @@
+import { techApi } from './tech.js';
+import { ensureTechSchema, TECH_TABLES } from './tech-schema.js';
 const json = (data, status = 200, extra = {}) => new Response(JSON.stringify(data), {
   status,
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...extra }
@@ -47,7 +49,7 @@ function productFromRow(r) {
     id: String(r.id), sku: r.sku || "", name: r.nome || "", description: r.descricao || "",
     category: r.categoria || "Outros", subcategory: r.subcategoria || "", unit: r.unidade || "Unidade",
     brand: r.marca || "", model: r.modelo || "", supplier: r.fornecedor || "", location: r.localizacao_estoque || "",
-    warranty: num(r.garantia), cost: num(r.preco_custo), margin: num(r.margem), price: num(r.preco_venda),
+    warranty: num(r.garantia), cost: num(r.preco_custo), replacementCost: num(r.custo_reposicao), margin: num(r.margem), price: num(r.preco_venda),
     stock: num(r.estoque), min: num(r.estoque_minimo), image: safeHttpsUrl(r.imagem_url),
     published: num(r.publicado, 1) === 1, active: num(r.ativo, 1) === 1,
     ratingAverage: num(r.media_avaliacao), ratingCount: integer(r.total_avaliacoes),
@@ -83,7 +85,7 @@ async function ensureSchema(env) {
     `CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL, whatsapp TEXT NOT NULL, email TEXT, cpf TEXT, cep TEXT, endereco TEXT, numero TEXT, complemento TEXT, bairro TEXT, cidade TEXT, estado TEXT, referencia TEXT, criado_em TEXT DEFAULT CURRENT_TIMESTAMP, atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
     `CREATE TABLE IF NOT EXISTS pedidos (id INTEGER PRIMARY KEY AUTOINCREMENT, codigo TEXT UNIQUE, cliente_id INTEGER, cliente_nome TEXT, cliente_whatsapp TEXT, status TEXT DEFAULT 'aguardando_pagamento', tipo_entrega TEXT DEFAULT 'pickup', endereco_entrega TEXT, maps_link TEXT, forma_pagamento TEXT DEFAULT 'Pix', parcelas INTEGER DEFAULT 1, subtotal REAL DEFAULT 0, taxa_entrega REAL DEFAULT 0, desconto REAL DEFAULT 0, total REAL DEFAULT 0, custo_total REAL DEFAULT 0, lucro REAL DEFAULT 0, comprovante_url TEXT, observacoes TEXT, criado_em TEXT DEFAULT CURRENT_TIMESTAMP, atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
     `CREATE TABLE IF NOT EXISTS itens_pedido (id INTEGER PRIMARY KEY AUTOINCREMENT, pedido_id INTEGER NOT NULL, produto_id INTEGER NOT NULL, nome_produto TEXT NOT NULL, quantidade INTEGER NOT NULL, preco_unitario REAL NOT NULL, custo_unitario REAL DEFAULT 0, subtotal REAL NOT NULL)`,
-    `CREATE TABLE IF NOT EXISTS movimentacoes_estoque (id INTEGER PRIMARY KEY AUTOINCREMENT, produto_id INTEGER NOT NULL, tipo TEXT NOT NULL, quantidade INTEGER NOT NULL, estoque_anterior INTEGER DEFAULT 0, estoque_novo INTEGER DEFAULT 0, motivo TEXT, pedido_id INTEGER, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
+    `CREATE TABLE IF NOT EXISTS movimentacoes_estoque (id INTEGER PRIMARY KEY AUTOINCREMENT, produto_id INTEGER NOT NULL, tipo TEXT NOT NULL, quantidade INTEGER NOT NULL, estoque_anterior INTEGER DEFAULT 0, estoque_novo INTEGER DEFAULT 0, motivo TEXT, pedido_id INTEGER, ordem_servico_id INTEGER, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
     `CREATE TABLE IF NOT EXISTS configuracoes (chave TEXT PRIMARY KEY, valor TEXT, atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
     `CREATE TABLE IF NOT EXISTS caixa (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT NOT NULL, descricao TEXT, valor REAL NOT NULL, metodo TEXT, pedido_id INTEGER, criado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
     `CREATE TABLE IF NOT EXISTS tentativas_admin (ip TEXT PRIMARY KEY, tentativas INTEGER DEFAULT 0, bloqueado_ate TEXT, atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP)`,
@@ -104,7 +106,7 @@ async function ensureSchema(env) {
   // Migra automaticamente bancos criados pelas versões anteriores sem apagar dados.
   await addMissingColumns(env, "produtos", [
     ["unidade", "TEXT DEFAULT 'Unidade'"], ["margem", "REAL DEFAULT 0"],
-    ["publicado", "INTEGER DEFAULT 1"], ["ativo", "INTEGER DEFAULT 1"],
+    ["custo_reposicao", "REAL NOT NULL DEFAULT 0"], ["publicado", "INTEGER DEFAULT 1"], ["ativo", "INTEGER DEFAULT 1"],
     ["atualizado_em", "TEXT"]
   ]);
   await addMissingColumns(env, "pedidos", [
@@ -113,6 +115,8 @@ async function ensureSchema(env) {
     ["atualizado_em", "TEXT"]
   ]);
   await addMissingColumns(env, "itens_pedido", [["custo_unitario", "REAL DEFAULT 0"]]);
+  await addMissingColumns(env, "movimentacoes_estoque", [["ordem_servico_id", "INTEGER"]]);
+  await addMissingColumns(env, "caixa", [["tech_pagamento_id", "INTEGER"], ["tech_despesa_id", "INTEGER"]]);
 }
 
 async function settingsObject(env, admin = false) {
@@ -174,6 +178,8 @@ async function api(request, env, url) {
   if (!env.DB) return json({ ok: false, error: "Banco D1 não vinculado. Adicione a associação D1 com nome DB." }, 503);
   await ensureSchema(env);
 
+  if (url.pathname.startsWith("/api/tech/")) return techApi(request, env, url, { adminAllowed, settingsObject });
+
   if (url.pathname === "/api/health") {
     const row = await env.DB.prepare("SELECT COUNT(*) total FROM produtos").first();
     return json({ ok: true, database: true, products: num(row?.total) });
@@ -184,7 +190,11 @@ async function api(request, env, url) {
     const ratingColumns = `, (SELECT ROUND(AVG(a.nota),1) FROM avaliacoes a WHERE a.produto_id=produtos.id) AS media_avaliacao, (SELECT COUNT(*) FROM avaliacoes a WHERE a.produto_id=produtos.id) AS total_avaliacoes`;
     const productSql = admin ? `SELECT produtos.* ${ratingColumns} FROM produtos WHERE ativo=1 ORDER BY id DESC` : `SELECT produtos.* ${ratingColumns} FROM produtos WHERE ativo=1 AND publicado=1 AND estoque>0 ORDER BY id DESC`;
     const products = await env.DB.prepare(productSql).all();
-    const payload = { products: (products.results || []).map(productFromRow), settings: await settingsObject(env, admin) };
+    const payload = { products: (products.results || []).map(row => {
+      const p = productFromRow(row);
+      if (!admin) for (const key of ["cost", "replacementCost", "margin", "supplier", "location", "min"]) delete p[key];
+      return p;
+    }), settings: await settingsObject(env, admin) };
     if (admin) {
       const customers = await env.DB.prepare("SELECT * FROM clientes ORDER BY id DESC LIMIT 500").all();
       const orders = await env.DB.prepare("SELECT * FROM pedidos ORDER BY id DESC LIMIT 500").all();
@@ -235,13 +245,13 @@ async function api(request, env, url) {
     const p = await readBody(request);
     if (!clean(p.name)) return json({ error: "Informe o nome do produto." }, 400);
     if (!(num(p.price) > 0)) return json({ error: "Informe um preço válido." }, 400);
-    const vals = [clean(p.sku) || null, clean(p.name), clean(p.description), clean(p.category) || "Outros", clean(p.subcategory), clean(p.unit) || "Unidade", clean(p.brand), clean(p.model), clean(p.supplier), clean(p.location), num(p.warranty), num(p.cost), num(p.margin), num(p.price), Math.max(0, Math.floor(num(p.stock))), Math.max(0, Math.floor(num(p.min))), safeHttpsUrl(p.image), p.published === false ? 0 : 1];
+    const vals = [clean(p.sku) || null, clean(p.name), clean(p.description), clean(p.category) || "Outros", clean(p.subcategory), clean(p.unit) || "Unidade", clean(p.brand), clean(p.model), clean(p.supplier), clean(p.location), num(p.warranty), Math.max(0,num(p.cost)), Math.max(0,num(p.replacementCost)), Math.max(0,num(p.margin)), num(p.price), Math.max(0, Math.floor(num(p.stock))), Math.max(0, Math.floor(num(p.min))), safeHttpsUrl(p.image), p.published === false ? 0 : 1];
     const id = Number(p.id);
     if (Number.isInteger(id) && id > 0) {
-      await env.DB.prepare(`UPDATE produtos SET sku=?,nome=?,descricao=?,categoria=?,subcategoria=?,unidade=?,marca=?,modelo=?,fornecedor=?,localizacao_estoque=?,garantia=?,preco_custo=?,margem=?,preco_venda=?,estoque=?,estoque_minimo=?,imagem_url=?,publicado=?,atualizado_em=CURRENT_TIMESTAMP WHERE id=?`).bind(...vals, id).run();
+      await env.DB.prepare(`UPDATE produtos SET sku=?,nome=?,descricao=?,categoria=?,subcategoria=?,unidade=?,marca=?,modelo=?,fornecedor=?,localizacao_estoque=?,garantia=?,preco_custo=?,custo_reposicao=?,margem=?,preco_venda=?,estoque=?,estoque_minimo=?,imagem_url=?,publicado=?,atualizado_em=CURRENT_TIMESTAMP WHERE id=?`).bind(...vals, id).run();
       return json({ product: productFromRow(await env.DB.prepare("SELECT * FROM produtos WHERE id=?").bind(id).first()) });
     }
-    const result = await env.DB.prepare(`INSERT INTO produtos(sku,nome,descricao,categoria,subcategoria,unidade,marca,modelo,fornecedor,localizacao_estoque,garantia,preco_custo,margem,preco_venda,estoque,estoque_minimo,imagem_url,publicado,ativo) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)`).bind(...vals).run();
+    const result = await env.DB.prepare(`INSERT INTO produtos(sku,nome,descricao,categoria,subcategoria,unidade,marca,modelo,fornecedor,localizacao_estoque,garantia,preco_custo,custo_reposicao,margem,preco_venda,estoque,estoque_minimo,imagem_url,publicado,ativo) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)`).bind(...vals).run();
     return json({ product: productFromRow(await env.DB.prepare("SELECT * FROM produtos WHERE id=?").bind(result.meta.last_row_id).first()) }, 201);
   }
 
@@ -295,7 +305,8 @@ async function api(request, env, url) {
 
   if (url.pathname === "/api/admin/backup" && request.method === "GET") {
     if (!(await adminAllowed(request, env))) return json({ error: "Senha administrativa inválida." }, 401);
-    const tables = ["produtos", "clientes", "pedidos", "itens_pedido", "movimentacoes_estoque", "configuracoes", "caixa"];
+    await ensureTechSchema(env);
+    const tables = ["produtos", "clientes", "pedidos", "itens_pedido", "movimentacoes_estoque", "configuracoes", "caixa", "avaliacoes", ...TECH_TABLES.filter(t => t !== "tech_limites")];
     const backup = { version: 1, generatedAt: new Date().toISOString(), data: {} };
     for (const table of tables) {
       const result = await env.DB.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all();
@@ -451,6 +462,17 @@ export default {
     try {
       if (url.pathname.startsWith("/api/")) return await api(request, env, url);
       if (!env.ASSETS) return new Response("ASSETS binding ausente.", { status: 500 });
+      if (url.pathname === '/tech' || url.pathname.startsWith('/tech/')) {
+        if (!['GET', 'HEAD'].includes(request.method)) return new Response('Método não permitido', { status: 405 });
+        const assetUrl = new URL('/tech.html', url);
+        const asset = await env.ASSETS.fetch(new Request(assetUrl, { method: request.method }));
+        const headers = new Headers(asset.headers);
+        headers.set('cache-control', 'no-store');
+        headers.set('referrer-policy', 'no-referrer');
+        headers.set('x-content-type-options', 'nosniff');
+        headers.set('content-security-policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+        return new Response(asset.body, { status: asset.status, headers });
+      }
       return env.ASSETS.fetch(request);
     } catch (error) {
       console.error(error);

@@ -48,3 +48,16 @@ O Worker cria e atualiza as colunas necessárias automaticamente no primeiro ace
 
 Execute `npm test` para validar a sintaxe e os testes de segurança. O modo
 de desenvolvimento do Wrangler depende de uma plataforma suportada pelo `workerd`.
+
+## MCastro Solutions Tech — serviços integrados
+
+Novo módulo integrado ao Worker/D1: catálogo de serviços em `/tech`, gestão em
+`/tech/admin` e propostas individuais em `/tech/orcamento/<token>`. Reutiliza a
+senha administrativa e o Cloudinary existentes. Categorias, perguntas e serviços
+serviços são cadastrados pelo administrador; solicitações, propostas, ordens, histórico,
+pagamentos e despesas ficam no D1.
+
+Consulte [arquitetura e fluxo inicial](docs/TECH_FASE1.md) e
+[OS, estoque, financeiro, acompanhamento e implantação](docs/TECH_FASE2.md).
+As alterações estão locais. D1 remoto, uploads Cloudinary reais e publicação
+precisam ser validados no ambiente Cloudflare antes do deploy.

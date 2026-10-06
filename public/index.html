@@ -21,6 +21,7 @@
       <button class="nav" data-view="sales">🛒 <span>Vendas</span></button>
       <button class="nav" data-view="customers">👥 <span>Clientes</span></button>
       <button class="nav" data-view="cash">💰 <span>Caixa</span></button>
+      <a class="nav" href="/tech/admin">🛠 <span>Solutions Tech</span></a>
       <button class="nav" data-view="settings">⚙ <span>Configurações</span></button>
     </nav>
   </aside>
@@ -178,6 +179,7 @@
       <label>Fornecedor<input id="pSupplier"></label>
       <label>Localização<input id="pLocation" placeholder="Ex.: Prateleira A2"></label>
       <label>Custo<input id="pCost" type="number" min="0" step="0.01" required></label>
+      <label>Custo atual de reposição<input id="pReplacementCost" type="number" min="0" step="0.01" value="0"><small>Usado para reservar capital do estoque em serviços.</small></label>
       <label>Margem (%)<input id="pMargin" type="number" min="0" step="0.1" value="50"></label>
       <label>Preço de venda<input id="pPrice" type="number" min="0" step="0.01" required></label>
       <label>Lucro por unidade<input id="pProfit" readonly></label>
