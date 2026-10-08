@@ -106,7 +106,9 @@
               <div class="row2"><label>WhatsApp<input id="publicCustomerPhone" inputmode="tel" autocomplete="tel" placeholder="(86) 99999-9999"></label><label>E-mail (opcional)<input id="publicCustomerEmail" type="email" autocomplete="email" placeholder="seu@email.com"></label></div>
             </div>
             <label>Pagamento<select id="payment"><option>À vista</option><option>Pix</option><option>Dinheiro</option><option>Cartão de débito</option><option>Cartão de crédito</option><option>Crediário</option></select></label><div class="publicOnly publicCheckoutFields"><label>Entrega<select id="deliveryMethod"><option value="pickup">Retirada na loja — grátis</option><option value="delivery">Receber em casa</option></select></label><div id="deliveryFields" class="deliveryFields">
-              <div class="row2"><label>CEP<input id="deliveryCep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"></label><label>Cidade<input id="deliveryCity" autocomplete="address-level2" value="Teresina"></label></div>
+              <div class="row2"><label>CEP<input id="deliveryCep" type="text" maxlength="9" aria-describedby="deliveryCepStatus" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"></label><label>Cidade<input id="deliveryCity" autocomplete="address-level2" value="Teresina"></label></div>
+              <small id="deliveryCepStatus" role="status" aria-live="polite">Digite o CEP para preencher o endereço automaticamente.</small>
+              <label>Estado (UF)<input id="deliveryState" maxlength="2" autocomplete="address-level1" value="PI" placeholder="UF"></label>
               <label>Rua / Avenida<input id="deliveryStreet" autocomplete="address-line1" placeholder="Nome da rua ou avenida"></label>
               <div class="row2"><label>Número<input id="deliveryNumber" inputmode="numeric" placeholder="Nº"></label><label>Bairro<input id="deliveryDistrict" autocomplete="address-level3" placeholder="Bairro"></label></div>
               <label>Complemento e referência<textarea id="deliveryAddress" rows="2" placeholder="Casa, apartamento, ponto de referência"></textarea></label>
@@ -246,4 +248,5 @@
 <script src="enhanced.js" defer></script>
 <script src="online.js" defer></script>
 <script src="reviews.js" defer></script>
+<script type="module" src="cep.js"></script>
 </body></html>

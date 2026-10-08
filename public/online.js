@@ -160,11 +160,11 @@
       name: $('publicCustomerName').value.trim(), phone: $('publicCustomerPhone').value,
       email: $('publicCustomerEmail').value.trim(), cep: $('deliveryCep').value.trim(), street: $('deliveryStreet').value.trim(),
       number: $('deliveryNumber').value.trim(), complement: $('deliveryAddress').value.trim(), district: $('deliveryDistrict').value.trim(),
-      city: $('deliveryCity').value.trim(), state: 'PI'
+      city: $('deliveryCity').value.trim(), state: $('deliveryState').value.trim().toUpperCase()
     } : null;
     if (publicMode && (customer.name.length < 3 || customer.phone.replace(/\D/g, '').length < 10)) return alert('Informe nome e WhatsApp válidos.');
     if (delivery && (!customer.street || !customer.number || !customer.district)) return alert('Preencha rua, número e bairro.');
-    const address = customer ? [customer.street, customer.number && 'nº ' + customer.number, customer.district, customer.city, customer.cep && 'CEP ' + customer.cep, customer.complement].filter(Boolean).join(', ') : '';
+    const address = customer ? [customer.street, customer.number && 'nº ' + customer.number, customer.district, customer.city, customer.state, customer.cep && 'CEP ' + customer.cep, customer.complement].filter(Boolean).join(', ') : '';
     const payload = {
       customer, customerId: publicMode ? undefined : $('saleCustomer').value,
       items: cart.map(item => ({ id: item.id, qty: item.qty })), deliveryMethod: delivery ? 'delivery' : 'pickup',

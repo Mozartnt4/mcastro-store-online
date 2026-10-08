@@ -423,6 +423,7 @@
       $('deliveryNumber')?.value.trim() ? 'nº '+$('deliveryNumber').value.trim() : '',
       $('deliveryDistrict')?.value.trim(),
       $('deliveryCity')?.value.trim(),
+      $('deliveryState')?.value.trim().toUpperCase(),
       $('deliveryCep')?.value.trim() ? 'CEP '+$('deliveryCep').value.trim() : '',
       $('deliveryAddress')?.value.trim()
     ].filter(Boolean);
