@@ -9,3 +9,11 @@ body{background:radial-gradient(ellipse at top right,#eee7ff,transparent 45%),#f
 @media(max-width:360px){.summary-grid{grid-template-columns:1fr}.top nav{grid-template-columns:1fr}.quote-line{grid-template-columns:1fr}.quote-line>strong{justify-self:end}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media print{body{background:white}.card,.panel,.hero{box-shadow:none}.notice{background:white;color:#29213d}.top nav{display:none}}
+
+/* Serviços e clientes em relação expansível */
+.service-list{display:grid;gap:12px}.service-disclosure{margin:0 0 12px;border:1px solid var(--line);border-radius:16px;background:white;overflow:hidden}
+.service-disclosure>summary{display:flex;align-items:center;gap:16px;justify-content:space-between;list-style:none;padding:18px;min-height:64px}
+.service-disclosure>summary::after{content:'＋';color:#6740b4;flex-shrink:0}.service-disclosure[open]>summary::after{content:'→'}
+.service-disclosure>summary>span:first-child{flex:1;min-width:0}.service-disclosure summary strong{overflow-wrap:anywhere}.service-disclosure summary small{display:block;font-weight:400;margin-top:4px}.service-disclosure .price{font-size:1rem;margin:0}
+.service-disclosure summary:focus-visible{outline:3px solid #8058cc;outline-offset:-3px}.disclosure-body{padding:18px;border-top:1px solid var(--line);background:#faf8ff}.service-photo{display:block;max-width:100%;width:240px;height:auto;border-radius:12px;margin-bottom:16px}
+@media(max-width:500px){.service-disclosure>summary{flex-wrap:wrap;gap:8px;padding:14px}.service-disclosure>summary>span:first-child{flex-basis:100%}.disclosure-body{padding:14px}}
