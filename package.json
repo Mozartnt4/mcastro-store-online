@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "node tools/deploy.mjs",
-    "check": "node --check src/index.js && node --check public/app.js && node --check public/enhanced.js && node --check public/online.js && node --check public/reviews.js && node --check public/service-worker.js && node --check src/tech.js && node --check src/tech-schema.js && node --check public/tech.js && node --check src/tech-management.js && node --check public/tech-management.js",
+    "check": "node --check src/index.js && node --check public/app.js && node --check public/enhanced.js && node --check public/online.js && node --check public/reviews.js && node --check public/service-worker.js && node --check src/tech.js && node --check src/tech-schema.js && node --check public/tech.js && node --check src/tech-management.js && node --check public/tech-management.js && node --check tools/configure-d1.mjs && node --check tools/wrangler-guard.mjs && node --check tools/install-deploy-guard.mjs && node --check tools/deploy.mjs",
     "test": "npm run check && node --test",
-    "preview:tech": "node tools/preview-tech.mjs"
+    "preview:tech": "node tools/preview-tech.mjs",
+    "postinstall": "node tools/install-deploy-guard.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.45.0"
