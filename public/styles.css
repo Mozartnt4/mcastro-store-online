@@ -148,3 +148,8 @@ body.public-mode main{max-width:1280px;margin-inline:auto;padding:24px}.publicSt
 .customerDisclosure .customerInfo{padding:0 18px 18px;border-top:1px solid var(--border)}
 .customerDisclosure summary:focus-visible{outline:3px solid var(--primary);outline-offset:-3px}
 @media(max-width:760px){.publicHeroArt.heroBrandArt{width:120px;max-width:45%}}
+
+/* Enquadra a marca no arquivo vertical, sem esticar a imagem */
+.publicHeroArt.heroBrandArt{position:relative;width:96px;height:96px;max-width:100%;aspect-ratio:1;overflow:hidden;border-radius:14px}
+.publicHeroArt.heroBrandArt img{position:absolute;inset:auto;top:-65%;left:0;width:100%;height:auto;max-width:100%;object-fit:contain}
+@media(max-width:760px){.publicHeroArt.heroBrandArt{width:80px;height:80px;max-width:100%}}
