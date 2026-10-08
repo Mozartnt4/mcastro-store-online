@@ -94,3 +94,16 @@ Não apague registros anteriores.
 - Solicitação agora tem localização, prioridade e data desejada; histórico unificado usa o ID de cliente Store.
 - Novas migrações aditivas e tabelas Tech aparecem no backup administrativo. `npm test`: 5 grupos de teste passaram, incluindo integração e regressão Store.
 - Sem commit, push, acesso ao D1 remoto, validação Cloudinary real ou publicação Cloudflare. As cinco exclusões locais listadas nas instruções do projeto foram mantidas sem alteração.
+
+
+## 08/10/2026 — Conclusão das pendências da missão Tech (4.4.0)
+
+Pedido do proprietário: resolver as pendências identificadas na revisão da missão.
+Acesso público pela página inicial, importação controlada do catálogo real,
+agenda, histórico de clientes, materiais, equipamentos instalados, garantias e retornos,
+modelos editáveis de termos e revisões persistidas, configurações financeiras e
+resultado por OS implementados. Corrigidos agendamento e recebimento após conclusão.
+Detalhes e critérios de validação em `docs/TECH_FASE3.md`.
+
+Publicação autorizada pelo pedido “resolva tudo”. Envio isolado de arquivos desta
+atualização, preservando as cinco exclusões antigas e `.local-tech`.

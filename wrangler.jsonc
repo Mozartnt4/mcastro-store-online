@@ -7,7 +7,16 @@
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*", "/tech", "/tech/*"]
+    "run_worker_first": [
+      "/api/*",
+      "/tech",
+      "/tech/*"
+    ]
   },
-  "observability": { "enabled": true }
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "TECH_IMPORT_CATALOG": "catalogo-real-20260923-v1"
+  }
 }

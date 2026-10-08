@@ -1,3 +1,4 @@
+import { importInitialCatalog, managementRoute, financeRules, financialSummary, financeReport } from './tech-management.js';
 import { ensureTechSchema } from './tech-schema.js';
 const response = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-content-type-options': 'nosniff' } });
 class InputError extends Error { constructor(message, status = 400) { super(message); this.status = status; } }
@@ -192,7 +193,7 @@ async function createOrderFromApproval(env, row, approvedAt) {
   const items = parse(row.itens_json), orderNo = `MC-OS-${String(row.solicitacao_id).padStart(6, '0')}`, publicToken=token();
   const statements = [
     env.DB.prepare(`UPDATE tech_orcamentos SET status='Aprovado',decidido_em=?,versao=versao+1 WHERE id=? AND status='Aguardando aprovação' AND validade>? AND versao=?`).bind(approvedAt,row.id,approvedAt,row.versao),
-    env.DB.prepare(`UPDATE tech_solicitacoes SET status='Orçamento aprovado' WHERE id=? AND EXISTS(SELECT 1 FROM tech_orcamentos WHERE id=? AND status='Aprovado' AND decidido_em=?)`).bind(row.solicitacao_id,row.id,approvedAt),
+    env.DB.prepare(`UPDATE tech_solicitacoes SET status='Convertido em OS' WHERE id=? AND EXISTS(SELECT 1 FROM tech_orcamentos WHERE id=? AND status='Aprovado' AND decidido_em=?)`).bind(row.solicitacao_id,row.id,approvedAt),
     env.DB.prepare(`INSERT INTO tech_ordens(numero,token_publico,solicitacao_id,orcamento_id,cliente_id,endereco,telefone,servico_nome,descricao,itens_json,total_centavos) SELECT ?,?,s.id,q.id,s.cliente_id,s.endereco,s.telefone,s.servico_nome,s.descricao,q.itens_json,q.total_centavos FROM tech_solicitacoes s JOIN tech_orcamentos q ON q.solicitacao_id=s.id WHERE q.id=? AND q.status='Aprovado' AND q.decidido_em=?`).bind(orderNo,publicToken,row.id,approvedAt)
   ];
   for (const i of items) statements.push(env.DB.prepare(`INSERT INTO tech_ordem_itens(ordem_id,tipo,nome,produto_id,quantidade,custo_centavos,reposicao_centavos,preco_centavos,subtotal_centavos) SELECT id,?,?,?,?,?,?,?,? FROM tech_ordens WHERE orcamento_id=?`).bind(i.tipo,i.nome,i.produto_id,i.quantidade,i.custo_centavos,i.reposicao_centavos,i.preco_centavos,i.subtotal_centavos,row.id));
@@ -213,7 +214,8 @@ async function orderDetail(env,id) {
     env.DB.prepare('SELECT id,total_centavos,motivo,status,token,versao,criado_em,decidido_em FROM tech_aditivos WHERE ordem_id=? ORDER BY criado_em DESC').bind(id).all()
   ]);
   const {respostas_json,token_publico,...safe}=order;
-  return {ordem:{...safe,public_link:'/tech/acompanhar/'+token_publico},itens:items.results,fotos:photos.results,historico:history.results,pagamentos:payments.results,despesas:expenses.results,aditivos:addons.results.map(a=>({...a,link:'/tech/aditivo/'+a.token}))};
+  const rules=await financeRules(env); const expenseTotal=expenses.results.reduce((a,e)=>a+e.valor_centavos,0);
+  return {financeiro:financialSummary(items.results,order.total_centavos,order.pago_centavos,expenseTotal,rules,order.status==='Concluído'),ordem:{...safe,public_link:'/tech/acompanhar/'+token_publico},itens:items.results,fotos:photos.results,historico:history.results,pagamentos:payments.results,despesas:expenses.results,aditivos:addons.results.map(a=>({...a,link:'/tech/aditivo/'+a.token}))};
 }
 async function dashboard(env) {
   const [counts,money,top,pending]=await Promise.all([
@@ -223,13 +225,15 @@ async function dashboard(env) {
     env.DB.prepare(`SELECT c.id,c.nome,c.whatsapp,COUNT(o.id) ordens,COALESCE(SUM(o.total_centavos-o.pago_centavos),0) pendente FROM clientes c JOIN tech_ordens o ON o.cliente_id=c.id WHERE o.total_centavos>o.pago_centavos AND o.status<>'Cancelado' GROUP BY c.id ORDER BY pendente DESC LIMIT 10`).all()
   ]);
   // Separate aggregates avoid a payments × expenses cross product.
-  const totals=await env.DB.prepare(`SELECT (SELECT COALESCE(SUM(valor_centavos),0) FROM tech_pagamentos) recebido,(SELECT COALESCE(SUM(valor_centavos),0) FROM tech_despesas) despesas,(SELECT COALESCE(SUM(i.quantidade_utilizada*i.custo_centavos),0) FROM tech_ordem_itens i JOIN tech_ordens o ON o.id=i.ordem_id WHERE o.status='Concluído') custo_historico,(SELECT COALESCE(SUM(i.quantidade_utilizada*i.reposicao_centavos),0) FROM tech_ordem_itens i JOIN tech_ordens o ON o.id=i.ordem_id WHERE o.status='Concluído') reserva_reposicao,(SELECT COUNT(*) FROM tech_orcamentos WHERE status='Aguardando aprovação' AND validade>datetime('now')) orcamentos_pendentes,(SELECT COALESCE(SUM(i.quantidade_utilizada),0) FROM tech_ordem_itens i JOIN tech_ordens o ON o.id=i.ordem_id WHERE o.status='Concluído' AND i.produto_id IS NOT NULL) materiais_utilizados,(SELECT COUNT(*) FROM tech_ordem_itens i JOIN tech_ordens o ON o.id=i.ordem_id WHERE o.status='Concluído' AND i.produto_id IS NOT NULL AND i.quantidade_utilizada>0 AND i.reposicao_centavos=0) materiais_sem_reposicao`).first();
+  const totals=await env.DB.prepare(`SELECT (SELECT COALESCE(SUM(valor_centavos),0) FROM tech_pagamentos) recebido,(SELECT COALESCE(SUM(valor_centavos),0) FROM tech_despesas) despesas,(SELECT COALESCE(SUM(i.quantidade_utilizada*i.custo_centavos),0) FROM tech_ordem_itens i JOIN tech_ordens o ON o.id=i.ordem_id WHERE o.status='Concluído') custo_historico,(SELECT COALESCE(SUM(i.quantidade_utilizada*i.reposicao_centavos),0) FROM tech_ordem_itens i JOIN tech_ordens o ON o.id=i.ordem_id WHERE o.status='Concluído') reserva_reposicao,(SELECT COUNT(*) FROM tech_orcamentos WHERE status='Aguardando aprovação' AND julianday(validade)>julianday('now')) orcamentos_pendentes,(SELECT COALESCE(SUM(i.quantidade_utilizada),0) FROM tech_ordem_itens i JOIN tech_ordens o ON o.id=i.ordem_id WHERE o.status='Concluído' AND i.produto_id IS NOT NULL) materiais_utilizados,(SELECT COUNT(*) FROM tech_ordem_itens i JOIN tech_ordens o ON o.id=i.ordem_id WHERE o.status='Concluído' AND i.produto_id IS NOT NULL AND i.quantidade_utilizada>0 AND i.reposicao_centavos=0) materiais_sem_reposicao`).first();
   const received=Number(totals.recebido||0), expenses=Number(totals.despesas||0), reserve=Number(totals.reserva_reposicao||0);
   const nominal=received-expenses-Number(totals.custo_historico||0),available=received-expenses-reserve;
-  return {indicadores:{...counts,...money,orcamentos_pendentes:Number(totals.orcamentos_pendentes),receita_servicos:received/100,despesas_centavos:expenses,custo_historico_centavos:totals.custo_historico,reserva_reposicao_centavos:totals.reserva_reposicao,resultado_disponivel_centavos:available,materiais_utilizados:totals.materiais_utilizados,materiais_sem_reposicao:totals.materiais_sem_reposicao,lucro_nominal_centavos:nominal,margem_nominal_pct:received?Math.round(nominal/received*10000)/100:0,margem_disponivel_pct:received?Math.round(available/received*10000)/100:0},servicos_mais_vendidos:top.results,clientes_pendentes:pending.results};
+  const report=await financeReport(env),returns=await env.DB.prepare("SELECT COUNT(*) quantidade FROM tech_retornos WHERE status<>'Concluído'").first();
+  return {indicadores:{...counts,...money,ticket_medio_centavos:report.resumo.ticket_medio_centavos,lucro_real_estimado_centavos:report.resumo.lucro_real_estimado_centavos,protecao_centavos:report.resumo.protecao_centavos,retornos_garantia:returns.quantidade,orcamentos_pendentes:Number(totals.orcamentos_pendentes),receita_servicos:received/100,despesas_centavos:expenses,custo_historico_centavos:totals.custo_historico,reserva_reposicao_centavos:totals.reserva_reposicao,resultado_disponivel_centavos:available,materiais_utilizados:totals.materiais_utilizados,materiais_sem_reposicao:totals.materiais_sem_reposicao,lucro_nominal_centavos:nominal,margem_nominal_pct:received?Math.round(nominal/received*10000)/100:0,margem_disponivel_pct:received?Math.round(available/received*10000)/100:0},servicos_mais_vendidos:top.results,clientes_pendentes:pending.results};
 }
 async function techRoute(request, env, url, helpers) {
   await ensureTechSchema(env);
+  if(env.TECH_IMPORT_CATALOG==='catalogo-real-20260923-v1')await importInitialCatalog(env);
   const path = url.pathname.slice('/api/tech'.length), method = request.method;
   const settings = await helpers.settingsObject(env);
   if (path === '/catalogo' && method === 'GET') return response(await catalog(env, false, settings));
@@ -243,6 +247,7 @@ async function techRoute(request, env, url, helpers) {
     if (method === 'POST' && publicMatch[2]) {
       const b = await bodyJSON(request);
       if (!['Aprovado', 'Recusado'].includes(b.decisao)) fail('Decisão inválida.');
+      if(number(b.versao,1000000,1,true)!==row.versao)fail('Orçamento alterado. Atualize a página.',409);
       if (b.decisao === 'Aprovado') await createOrderFromApproval(env,row,new Date().toISOString());
       else {
         const at=new Date().toISOString();
@@ -259,15 +264,16 @@ async function techRoute(request, env, url, helpers) {
   if(tracking&&method==='GET'){
     const order=await env.DB.prepare('SELECT numero,status,servico_nome,agendado_para,criado_em,atualizado_em,concluido_em,total_centavos,pago_centavos FROM tech_ordens WHERE token_publico=?').bind(tracking[1]).first();if(!order)fail('Acompanhamento não encontrado.',404);
     const [photos,history,items]=await Promise.all([env.DB.prepare('SELECT etapa,url,criado_em FROM tech_fotos WHERE ordem_id=(SELECT id FROM tech_ordens WHERE token_publico=?) ORDER BY criado_em').bind(tracking[1]).all(),env.DB.prepare(`SELECT tipo,descricao,criado_em FROM tech_historico WHERE ordem_id=(SELECT id FROM tech_ordens WHERE token_publico=?) AND tipo IN ('Status','Agendamento','Aprovação') ORDER BY criado_em`).bind(tracking[1]).all(),env.DB.prepare('SELECT nome,quantidade,preco_centavos,subtotal_centavos FROM tech_ordem_itens WHERE ordem_id=(SELECT id FROM tech_ordens WHERE token_publico=?) ORDER BY id').bind(tracking[1]).all()]);
-    return response({ordem:order,fotos:photos.results,historico:history.results,itens:items.results});
+    return response({ordem:order,fotos:photos.results,historico:history.results,itens:items.results,whatsapp:settings.whatsapp});
   }
   if (!path.startsWith('/admin/') && !path.startsWith('/aditivos/')) fail('Rota não encontrada.', 404);
   if (path.startsWith('/admin/') && !await helpers.adminAllowed(request, env)) fail('Entre com a senha administrativa.', 401);
+  if(path.startsWith('/admin/')) { const result=await managementRoute(request,env,path,{response,fail,str,number,idOf,bodyJSON,audit,quoteItems,linkProductCosts}); if(result)return result; }
   if (path === '/admin/catalogo' && method === 'GET') return response(await catalog(env, true, settings));
   const customerHistory=path.match(/^\/admin\/clientes\/(\d+)\/historico$/);
   if(customerHistory&&method==='GET'){
     const id=idOf(customerHistory[1]),customer=await env.DB.prepare('SELECT id,nome,whatsapp,email,endereco,cidade,estado FROM clientes WHERE id=?').bind(id).first();if(!customer)fail('Cliente não encontrado.',404);
-    const [sales,requests,orders]=await Promise.all([env.DB.prepare(`SELECT id,codigo,status,total,criado_em FROM pedidos WHERE cliente_id=? ORDER BY id DESC LIMIT 100`).bind(id).all(),env.DB.prepare(`SELECT id,servico_nome,status,criado_em FROM tech_solicitacoes WHERE cliente_id=? ORDER BY id DESC LIMIT 100`).bind(id).all(),env.DB.prepare(`SELECT id,numero,status,total_centavos,pago_centavos,criado_em FROM tech_ordens WHERE cliente_id=? ORDER BY id DESC LIMIT 100`).bind(id).all()]);return response({cliente:customer,compras:sales.results,solicitacoes:requests.results,ordens:orders.results});
+    const [sales,requests,orders]=await Promise.all([env.DB.prepare(`SELECT id,codigo,status,total,criado_em FROM pedidos WHERE cliente_id=? ORDER BY id DESC LIMIT 100`).bind(id).all(),env.DB.prepare(`SELECT s.id,s.servico_nome,CASE WHEN o.id IS NOT NULL THEN 'Convertido em OS' WHEN q.status='Aguardando aprovação' AND julianday(q.validade)<=julianday('now') THEN 'Expirado' ELSE COALESCE(q.status,s.status) END status,s.criado_em FROM tech_solicitacoes s LEFT JOIN tech_orcamentos q ON q.solicitacao_id=s.id LEFT JOIN tech_ordens o ON o.solicitacao_id=s.id WHERE s.cliente_id=? ORDER BY s.id DESC LIMIT 100`).bind(id).all(),env.DB.prepare(`SELECT id,numero,status,total_centavos,pago_centavos,criado_em FROM tech_ordens WHERE cliente_id=? ORDER BY id DESC LIMIT 100`).bind(id).all()]);const equipamentos=await env.DB.prepare('SELECT e.id,e.nome,e.serie,e.instalado_em,e.ordem_id,g.fim garantia_ate FROM tech_equipamentos e LEFT JOIN tech_garantias g ON g.equipamento_id=e.id WHERE e.cliente_id=? ORDER BY e.id DESC').bind(id).all();const garantias=await env.DB.prepare('SELECT g.id,g.inicio,g.fim,g.cobertura,g.status,o.numero FROM tech_garantias g JOIN tech_ordens o ON o.id=g.ordem_id WHERE o.cliente_id=? ORDER BY g.id DESC').bind(id).all();return response({cliente:customer,compras:sales.results,solicitacoes:requests.results,ordens:orders.results,equipamentos:equipamentos.results,garantias:garantias.results});
   }
   if (path === '/admin/dashboard' && method === 'GET') return response(await dashboard(env));
   if (path === '/admin/ordens' && method === 'GET') {
@@ -287,8 +293,8 @@ async function techRoute(request, env, url, helpers) {
     if(method==='PUT'&&action==='agendamento'){
       const b=await bodyJSON(request), scheduled=str(b.agendado_para,40), responsible=str(b.responsavel,120), notes=str(b.observacoes,3000);
       if(scheduled&&!Number.isFinite(new Date(scheduled).getTime()))fail('Data de agendamento inválida.');
-      const result=await env.DB.batch([env.DB.prepare(`UPDATE tech_ordens SET agendado_para=?,responsavel=?,observacoes=?,status=CASE WHEN ?<>'' AND status='Aguardando agendamento' THEN 'Agendado' ELSE status END,atualizado_em=CURRENT_TIMESTAMP WHERE id=? AND status NOT IN ('Concluído','Cancelado')`).bind(scheduled||null,responsible,notes,scheduled,id),env.DB.prepare(`INSERT INTO tech_historico(ordem_id,tipo,descricao,dados_json) SELECT ?, 'Agendamento',?,? WHERE EXISTS(SELECT 1 FROM tech_ordens WHERE id=? AND agendado_para IS ?)`).bind(id,scheduled?`Agendada para ${scheduled}`:'Agendamento atualizado',JSON.stringify({agendado_para:scheduled,responsavel}),id,scheduled||null)]);if(!result[0].meta.changes)fail('Ordem inexistente ou encerrada.',409);
-      await audit(env,'ordem',id,'agendamento',{agendado_para:scheduled,responsavel});return response({ok:true});
+      const result=await env.DB.batch([env.DB.prepare(`UPDATE tech_ordens SET agendado_para=?,responsavel=?,observacoes=?,status=CASE WHEN ?<>'' AND status='Aguardando agendamento' THEN 'Agendado' ELSE status END,atualizado_em=CURRENT_TIMESTAMP WHERE id=? AND status NOT IN ('Concluído','Cancelado')`).bind(scheduled||null,responsible,notes,scheduled,id),env.DB.prepare(`INSERT INTO tech_historico(ordem_id,tipo,descricao,dados_json) SELECT ?, 'Agendamento',?,? WHERE EXISTS(SELECT 1 FROM tech_ordens WHERE id=? AND agendado_para IS ?)`).bind(id,scheduled?`Agendada para ${scheduled}`:'Agendamento atualizado',JSON.stringify({agendado_para:scheduled,responsavel:responsible}),id,scheduled||null)]);if(!result[0].meta.changes)fail('Ordem inexistente ou encerrada.',409);
+      await audit(env,'ordem',id,'agendamento',{agendado_para:scheduled,responsavel:responsible});return response({ok:true});
     }
     if(method==='PUT'&&action==='itens'){
       const b=await bodyJSON(request);if(!Array.isArray(b.itens)||b.itens.length>100)fail('Lista de materiais inválida.');
@@ -376,5 +382,5 @@ async function techRoute(request, env, url, helpers) {
 }
 export async function techApi(request, env, url, helpers) {
   try { return await techRoute(request, env, url, helpers); }
-  catch (error) { if (error instanceof InputError) return response({ error: error.message }, error.status); if (/estoque_insuficiente/i.test(String(error?.message))) return response({error:'Estoque insuficiente para concluir a OS. Ajuste os materiais utilizados ou reponha o estoque.'},409); throw error; }
+  catch (error) { if (error instanceof InputError) return response({ error: error.message }, error.status); if (/pagamento_saldo_invalido/i.test(String(error?.message)))return response({error:'Recebimento acima do saldo ou OS cancelada. Atualize a ordem.'},409); if (/estoque_insuficiente/i.test(String(error?.message))) return response({error:'Estoque insuficiente para concluir a OS. Ajuste os materiais utilizados ou reponha o estoque.'},409); throw error; }
 }

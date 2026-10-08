@@ -1,0 +1,259 @@
+{
+  "versao": "catalogo-real-20260923-v1",
+  "categorias": [
+    {
+      "nome": "Climatização",
+      "descricao": "Limpeza e cuidados com aparelhos de ar-condicionado.",
+      "campos_json": "[]",
+      "ativo": 1
+    },
+    {
+      "nome": "Elétrica",
+      "descricao": "Substituição de componentes e serviços elétricos sob avaliação.",
+      "campos_json": "[]",
+      "ativo": 1
+    },
+    {
+      "nome": "Fechaduras",
+      "descricao": "Instalação, substituição e ajustes de fechaduras.",
+      "campos_json": "[]",
+      "ativo": 1
+    },
+    {
+      "nome": "Câmeras e segurança",
+      "descricao": "",
+      "campos_json": "[]",
+      "ativo": 1
+    },
+    {
+      "nome": "Portões e automação",
+      "descricao": "",
+      "campos_json": "[]",
+      "ativo": 1
+    },
+    {
+      "nome": "Tecnologia e redes",
+      "descricao": "",
+      "campos_json": "[]",
+      "ativo": 1
+    },
+    {
+      "nome": "Manutenção de equipamentos",
+      "descricao": "",
+      "campos_json": "[]",
+      "ativo": 1
+    }
+  ],
+  "servicos": [
+    {
+      "nome": "Limpeza de ar-condicionado",
+      "descricao": "Limpeza e higienização de ar-condicionado, conforme o modelo, as condições do aparelho e o acesso ao local.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais necessários e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Valor, prazo e condições serão informados após avaliação da solicitação.",
+      "campos_json": "[{\"key\":\"tipo_aparelho\",\"label\":\"Tipo de aparelho\",\"type\":\"selecao\",\"required\":false,\"options\":[\"Split\",\"Janela\",\"Outro\",\"Não sei informar\"]},{\"key\":\"capacidade\",\"label\":\"Capacidade em BTUs, se souber\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"ultima_limpeza\",\"label\":\"Quando foi feita a última limpeza?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"acesso\",\"label\":\"Como é o acesso ao aparelho?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Climatização"
+    },
+    {
+      "nome": "Substituição de tomadas",
+      "descricao": "Substituição de tomadas com avaliação das condições do ponto elétrico e da compatibilidade dos componentes.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais necessários e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Valor, prazo e condições serão informados após avaliação da solicitação.",
+      "campos_json": "[{\"key\":\"tipo_imovel\",\"label\":\"Tipo de imóvel\",\"type\":\"selecao\",\"required\":false,\"options\":[\"Residencial\",\"Comercial\",\"Outro\"]},{\"key\":\"problema\",\"label\":\"Qual problema a tomada apresenta?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"material_cliente\",\"label\":\"Você já possui as tomadas novas?\",\"type\":\"selecao\",\"required\":false,\"options\":[\"Sim\",\"Não\",\"Preciso de orientação\"]}]",
+      "ativo": 1,
+      "categoria": "Elétrica"
+    },
+    {
+      "nome": "Instalação e substituição de fechaduras",
+      "descricao": "Instalação, troca ou ajuste de fechaduras, conforme o tipo de porta e a compatibilidade do modelo escolhido.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais necessários e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Valor, prazo e condições serão informados após avaliação da solicitação.",
+      "campos_json": "[{\"key\":\"servico_fechadura\",\"label\":\"O que você precisa?\",\"type\":\"selecao\",\"required\":false,\"options\":[\"Instalar uma fechadura\",\"Substituir uma fechadura\",\"Ajustar uma fechadura\"]},{\"key\":\"tipo_porta\",\"label\":\"Material da porta\",\"type\":\"selecao\",\"required\":false,\"options\":[\"Madeira\",\"Metal\",\"Vidro\",\"Outro\",\"Não sei informar\"]},{\"key\":\"tipo_fechadura\",\"label\":\"Tipo de fechadura\",\"type\":\"selecao\",\"required\":false,\"options\":[\"Convencional\",\"Digital\",\"Outro\",\"Preciso de orientação\"]}]",
+      "ativo": 1,
+      "categoria": "Fechaduras"
+    },
+    {
+      "nome": "Serviços de eletricista",
+      "descricao": "Avaliação de problemas elétricos e execução de pequenos reparos ou instalações, com escopo definido após análise da solicitação.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais necessários e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Valor, prazo e condições serão informados após avaliação da solicitação.",
+      "campos_json": "[{\"key\":\"tipo_imovel\",\"label\":\"Tipo de imóvel\",\"type\":\"selecao\",\"required\":false,\"options\":[\"Residencial\",\"Comercial\",\"Outro\"]},{\"key\":\"tipo_atendimento\",\"label\":\"Tipo de atendimento\",\"type\":\"selecao\",\"required\":false,\"options\":[\"Reparo\",\"Instalação\",\"Avaliação de problema\",\"Outro\"]},{\"key\":\"local_servico\",\"label\":\"Em qual ambiente será realizado o serviço?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Elétrica"
+    },
+    {
+      "nome": "Instalação de câmeras de segurança",
+      "descricao": "Instalação de câmeras conforme o ambiente, os pontos de energia e a infraestrutura disponível.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais, peças e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Atendimento sujeito à avaliação técnica. Valor, prazo e condições serão informados no orçamento.",
+      "campos_json": "[{\"key\":\"detalhe_1\",\"label\":\"Qual o modelo das câmeras?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"detalhe_2\",\"label\":\"Há Wi-Fi e energia próximos ao local?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Câmeras e segurança"
+    },
+    {
+      "nome": "Configuração de câmeras e acesso pelo celular",
+      "descricao": "Configuração de câmeras e do acesso pelo aplicativo, conforme a compatibilidade dos equipamentos.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais, peças e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Atendimento sujeito à avaliação técnica. Valor, prazo e condições serão informados no orçamento.",
+      "campos_json": "[{\"key\":\"detalhe_1\",\"label\":\"Qual a marca e o modelo da câmera?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"detalhe_2\",\"label\":\"O equipamento já está instalado?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Câmeras e segurança"
+    },
+    {
+      "nome": "Instalação de motor de portão",
+      "descricao": "Instalação de motor de portão após avaliação da estrutura e da compatibilidade do equipamento.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais, peças e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Atendimento sujeito à avaliação técnica. Valor, prazo e condições serão informados no orçamento.",
+      "campos_json": "[{\"key\":\"detalhe_1\",\"label\":\"Qual o tipo e o tamanho do portão?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"detalhe_2\",\"label\":\"Você já possui o motor?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Portões e automação"
+    },
+    {
+      "nome": "Manutenção de portão automático",
+      "descricao": "Avaliação de falhas e manutenção de sistemas de portão automático.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais, peças e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Atendimento sujeito à avaliação técnica. Valor, prazo e condições serão informados no orçamento.",
+      "campos_json": "[{\"key\":\"detalhe_1\",\"label\":\"Qual a marca do motor?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"detalhe_2\",\"label\":\"Qual problema o portão apresenta?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Portões e automação"
+    },
+    {
+      "nome": "Instalação de luminárias e ventiladores de teto",
+      "descricao": "Instalação de luminárias ou ventiladores de teto com avaliação da fixação e do ponto elétrico.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais, peças e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Atendimento sujeito à avaliação técnica. Valor, prazo e condições serão informados no orçamento.",
+      "campos_json": "[{\"key\":\"detalhe_1\",\"label\":\"Qual equipamento será instalado?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"detalhe_2\",\"label\":\"Já existe um ponto elétrico no local?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Elétrica"
+    },
+    {
+      "nome": "Instalação de ar-condicionado",
+      "descricao": "Instalação de ar-condicionado mediante avaliação do aparelho, local e infraestrutura necessária.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais, peças e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Atendimento sujeito à avaliação técnica. Valor, prazo e condições serão informados no orçamento.",
+      "campos_json": "[{\"key\":\"detalhe_1\",\"label\":\"Qual o modelo e a capacidade em BTUs?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"detalhe_2\",\"label\":\"Onde serão instaladas as unidades interna e externa?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Climatização"
+    },
+    {
+      "nome": "Manutenção de ar-condicionado",
+      "descricao": "Avaliação de falhas de funcionamento e manutenção conforme diagnóstico do aparelho.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais, peças e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Atendimento sujeito à avaliação técnica. Valor, prazo e condições serão informados no orçamento.",
+      "campos_json": "[{\"key\":\"detalhe_1\",\"label\":\"Qual a marca e o modelo?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"detalhe_2\",\"label\":\"Qual problema o aparelho apresenta?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Climatização"
+    },
+    {
+      "nome": "Configuração de roteador e rede Wi-Fi",
+      "descricao": "Configuração de roteadores e avaliação da cobertura Wi-Fi no imóvel.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais, peças e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Atendimento sujeito à avaliação técnica. Valor, prazo e condições serão informados no orçamento.",
+      "campos_json": "[{\"key\":\"detalhe_1\",\"label\":\"Qual a marca e o modelo do roteador?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"detalhe_2\",\"label\":\"Você precisa configurar a rede ou melhorar o sinal?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Tecnologia e redes"
+    },
+    {
+      "nome": "Instalação e configuração de equipamentos",
+      "descricao": "Instalação e configuração de equipamentos de tecnologia conforme a compatibilidade e a necessidade do cliente.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais, peças e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Atendimento sujeito à avaliação técnica. Valor, prazo e condições serão informados no orçamento.",
+      "campos_json": "[{\"key\":\"detalhe_1\",\"label\":\"Qual equipamento deseja instalar?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"detalhe_2\",\"label\":\"Qual a marca e o modelo?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Tecnologia e redes"
+    },
+    {
+      "nome": "Manutenção de roçadeiras",
+      "descricao": "Avaliação e manutenção de roçadeiras, com peças e serviços definidos após diagnóstico.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais, peças e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Atendimento sujeito à avaliação técnica. Valor, prazo e condições serão informados no orçamento.",
+      "campos_json": "[{\"key\":\"detalhe_1\",\"label\":\"Qual a marca e o modelo?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"detalhe_2\",\"label\":\"Qual problema a roçadeira apresenta?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Manutenção de equipamentos"
+    },
+    {
+      "nome": "Manutenção de equipamentos",
+      "descricao": "Avaliação de equipamentos para identificar a possibilidade de reparo e os materiais necessários.",
+      "imagem_url": "",
+      "tipo_preco": "orcamento",
+      "preco_centavos": 0,
+      "tempo": "",
+      "materiais": "Materiais, peças e fornecimento serão definidos no orçamento.",
+      "garantia": "",
+      "observacoes": "Atendimento sujeito à avaliação técnica. Valor, prazo e condições serão informados no orçamento.",
+      "campos_json": "[{\"key\":\"detalhe_1\",\"label\":\"Qual equipamento precisa de manutenção?\",\"type\":\"texto\",\"required\":false,\"options\":[]},{\"key\":\"detalhe_2\",\"label\":\"Qual defeito ou dificuldade você percebeu?\",\"type\":\"texto\",\"required\":false,\"options\":[]}]",
+      "ativo": 1,
+      "categoria": "Manutenção de equipamentos"
+    }
+  ]
+}

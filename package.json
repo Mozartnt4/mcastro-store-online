@@ -1,12 +1,12 @@
 {
   "name": "mcastro-store-pro-enterprise",
-  "version": "4.3.0",
+  "version": "4.4.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "node tools/deploy.mjs",
-    "check": "node --check src/index.js && node --check public/app.js && node --check public/enhanced.js && node --check public/online.js && node --check public/reviews.js && node --check public/service-worker.js && node --check src/tech.js && node --check src/tech-schema.js && node --check public/tech.js",
+    "check": "node --check src/index.js && node --check public/app.js && node --check public/enhanced.js && node --check public/online.js && node --check public/reviews.js && node --check public/service-worker.js && node --check src/tech.js && node --check src/tech-schema.js && node --check public/tech.js && node --check src/tech-management.js && node --check public/tech-management.js",
     "test": "npm run check && node --test",
     "preview:tech": "node tools/preview-tech.mjs"
   },

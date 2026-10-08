@@ -1,0 +1,1 @@
+body{font:16px Arial,sans-serif;max-width:800px;padding:24px;margin:auto;color:#222}p{white-space:pre-wrap;overflow-wrap:anywhere}h1{font-size:clamp(24px,5vw,32px)}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #ddd;text-align:left;overflow-wrap:anywhere}button{padding:12px;min-height:44px}@media print{button{display:none}body{padding:0}}

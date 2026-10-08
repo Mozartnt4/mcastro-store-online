@@ -1,4 +1,4 @@
-# MCastro Store Pro Enterprise 4.3 — versão operacional
+# MCastro Solutions 4.4 — versão operacional
 
 Esta versão mantém o layout existente e troca o armazenamento principal pelo Cloudflare D1.
 
@@ -54,10 +54,27 @@ de desenvolvimento do Wrangler depende de uma plataforma suportada pelo `workerd
 Novo módulo integrado ao Worker/D1: catálogo de serviços em `/tech`, gestão em
 `/tech/admin` e propostas individuais em `/tech/orcamento/<token>`. Reutiliza a
 senha administrativa e o Cloudinary existentes. Categorias, perguntas e serviços
-serviços são cadastrados pelo administrador; solicitações, propostas, ordens, histórico,
+são cadastrados pelo administrador; solicitações, propostas, ordens, histórico,
 pagamentos e despesas ficam no D1.
 
 Consulte [arquitetura e fluxo inicial](docs/TECH_FASE1.md) e
 [OS, estoque, financeiro, acompanhamento e implantação](docs/TECH_FASE2.md).
-As alterações estão locais. D1 remoto, uploads Cloudinary reais e publicação
-precisam ser validados no ambiente Cloudflare antes do deploy.
+A página inicial possui acesso público aos serviços. Agenda, clientes, materiais,
+equipamentos instalados, garantias/retornos, termos e financeiro têm áreas próprias.
+Os termos usam modelos editáveis e revisões preservadas no D1. Pagamentos podem ser
+registrados depois de concluir uma OS.
+
+O catálogo real de 7 categorias e 15 serviços é importado uma vez no D1 mediante
+`TECH_IMPORT_CATALOG=catalogo-real-20260923-v1`, configurado no Wrangler. A importação
+preserva cadastros existentes e não transfere dados de teste. Alterações e exclusões
+posteriores do catálogo são respeitadas.
+
+Em Configurações Tech, defina proteção do capital e margem real desejada. Campos
+vazios significam regras não definidas. O financeiro separa custos de aquisição,
+reposição, despesas, proteção, markup e margens; informações incompletas não geram
+um valor afirmativo de lucro real. Não lance a mesma despesa operacional como custo
+de item e como despesa da OS: os dois campos entram no cálculo.
+
+Consulte [plano, conclusão da missão e modo de uso](docs/TECH_FASE3.md).
+Execute `npm test` antes de publicar e confira `/api/health` e `/api/tech/catalogo`.
+A hospedagem continua no Worker e banco existentes.
