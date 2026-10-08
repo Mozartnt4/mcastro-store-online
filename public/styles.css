@@ -88,66 +88,6 @@ body.public-mode .sidebar,body.public-mode header,body.public-mode .bottom{displ
 @media(max-width:700px){.publicHeroArt{width:calc(100% + 40px);height:auto;aspect-ratio:1672/941;margin:10px -20px 0}.publicHeroArt img{width:100%;height:100%;object-fit:cover;object-position:center}.bottom{grid-template-columns:repeat(6,minmax(0,1fr));padding-inline:2px}.bottom button{min-width:0;padding-inline:1px}.bottom small{font-size:8px;white-space:nowrap}.bottom .plus{width:38px;height:38px}}
 @media(max-width:390px){.publicHeroArt{height:auto;aspect-ratio:1672/941}.publicHeroCopy h2{font-size:clamp(25px,8vw,29px)}}
 
-/* Identidade MCastro Solutions — preto, ouro e prata */
-:root{
-  --bg:#f7f5f0;--surface:#fff;--surface2:#f5f3ee;--text:#171512;--muted:#716b61;
-  --primary:#a66a16;--primary2:#d6a84d;--border:#e2ddd2;--green:#18785e;
-  --shadow:0 18px 50px rgba(25,19,10,.10)
-}
-body{background:radial-gradient(circle at 88% 0,rgba(214,168,77,.16),transparent 26%),var(--bg)}
-.sidebar{background:linear-gradient(180deg,#080808,#17130d 58%,#050505);border-right:1px solid rgba(214,168,77,.25)}
-.brandLogo{width:48px;height:48px;object-fit:cover;object-position:center;border-radius:14px;border:1px solid rgba(236,194,105,.55);box-shadow:0 8px 22px rgba(0,0,0,.4)}
-.brand strong{letter-spacing:.02em}.brand small{color:#d6a84d}
-.nav.active,.nav:hover{background:linear-gradient(90deg,rgba(214,168,77,.22),rgba(255,255,255,.06));color:#f6d58d}
-.primary,.checkout{background:linear-gradient(135deg,#8a5511,#d6a84d 55%,#f0cf84);color:#171008;box-shadow:0 10px 24px rgba(166,106,22,.22)}
-.secondary{background:linear-gradient(180deg,#fff,#f2efe8)}
-.hero,.catalogHero{background:linear-gradient(135deg,#090909,#21190e 58%,#70430d);box-shadow:0 22px 55px rgba(45,29,8,.25)}
-.hero p,.catalogHero p{color:#ddd5c7}.catalogEyebrow,.storeTag{color:#e7c270}
-.price,.publicPrice,.saleProduct span{color:#9a6215}
-.qrAction,.categoryChip.active{background:#f7ecd4!important;color:#7a4b0d!important;border-color:#d9b66f}
-.categoryChip.active{box-shadow:0 8px 18px rgba(166,106,22,.17)}
-.cartPanel{border-top-color:#d6a84d}
-.publicStoreHero{
-  background:linear-gradient(110deg,#050505 0%,#17130d 43%,#51320c 100%);
-  box-shadow:0 22px 55px rgba(24,17,7,.28)
-}
-.publicStoreHero:before{background:rgba(214,168,77,.18)}
-.publicHeroArt{background:#030303}
-.publicHeroArt img{object-fit:cover;object-position:center 49%;filter:contrast(1.03) saturate(.9)}
-.storeTrust{background:rgba(7,7,7,.78);border:1px solid rgba(214,168,77,.22)}
-.publicBadge{background:#f7ecd4;color:#75470c}
-.bottom{background:rgba(8,8,8,.98);border-top:1px solid rgba(214,168,77,.25)}
-.bottom .plus{background:linear-gradient(135deg,#8a5511,#e6bd68);color:#171008}
-input:focus,select:focus,textarea:focus{border-color:#c28a31;box-shadow:0 0 0 4px rgba(194,138,49,.13)}
-@media(max-width:700px){
-  .storeTrust{background:#171008}
-  .publicHeroArt{aspect-ratio:1.45/1}
-  .publicHeroArt img{object-position:center 50%}
-}
-
-/* Identidade laranja e correções de interface — v4.4 */
-:root{
-  --bg:#fff8f2;--surface:#fff;--surface2:#fff3e8;--text:#24211f;--muted:#746b64;
-  --primary:#ff7a00;--primary2:#ff9a3d;--border:#f0d9c5;--green:#087f5b;--orange:#ff7a00;
-  --shadow:0 16px 44px rgba(118,56,5,.10)
-}
-body{background:radial-gradient(circle at 92% 0,rgba(255,122,0,.16),transparent 29%),#fff8f2}
-.sidebar{background:linear-gradient(180deg,#2a1608,#17110d 62%,#0d0b09);border-right:1px solid rgba(255,122,0,.28)}
-.brand small{color:#ff9a3d}.brandLogo{border-color:rgba(255,122,0,.65)}
-.nav.active,.nav:hover{background:linear-gradient(90deg,rgba(255,122,0,.30),rgba(255,255,255,.05));color:#fff}
-.primary,.checkout,.publicAddHint{background:linear-gradient(135deg,#ed6500,#ff7a00 55%,#ffa04b)!important;color:#fff!important;box-shadow:0 10px 24px rgba(255,122,0,.25)}
-.secondary{background:#fff;color:#3b2b20;border:1px solid #efd2b8}
-.hero,.catalogHero{background:linear-gradient(135deg,#2b1607,#9b3e00 55%,#ff7a00);box-shadow:0 22px 55px rgba(154,62,0,.23)}
-.hero p,.catalogHero p{color:#fff0e3}.catalogEyebrow,.storeTag{color:#ffd4ad}
-.price,.publicPrice,.saleProduct span{color:#e96300}
-.qrAction,.categoryChip.active{background:#fff0e2!important;color:#a74300!important;border-color:#ffbd82}
-.categoryChip.active{box-shadow:0 8px 18px rgba(255,122,0,.17)}
-.cartPanel{border-top-color:#ff7a00}.publicStoreHero{background:linear-gradient(115deg,#251207 0%,#8f3800 45%,#ff7a00 100%);box-shadow:0 22px 55px rgba(115,45,0,.27)}
-.publicStoreHero:before{background:rgba(255,211,166,.24)}.storeTrust{background:rgba(44,19,4,.82);border-color:rgba(255,190,128,.30)}
-.publicBadge{background:#fff0e2;color:#9b3e00}.bottom{background:rgba(31,16,7,.98);border-top-color:rgba(255,122,0,.35)}
-.bottom .plus{background:linear-gradient(135deg,#ef6500,#ff9d42);color:#fff}
-input:focus,select:focus,textarea:focus{border-color:#ff7a00;box-shadow:0 0 0 4px rgba(255,122,0,.13)}
-
 /* Botões sempre legíveis, sem sobreposição */
 .panelHead,.modalHead,.toolbar,.modalActions,.productActions,.publicProductActions,.storeQrActions,.orderActions{min-width:0}
 .panelHead>div,.modalHead>div{min-width:0}.panelHead h3,.panelHead p{overflow-wrap:anywhere}
@@ -176,3 +116,16 @@ input:focus,select:focus,textarea:focus{border-color:#ff7a00;box-shadow:0 0 0 4p
 
 .techServicesEntry{display:inline-flex;align-items:center;justify-content:center;min-height:44px;max-width:100%;margin-top:18px;padding:12px 16px;border:1px solid #ffbd82;border-radius:12px;background:#fff0e2;color:#873800;font-weight:800;text-decoration:none;line-height:1.4;overflow-wrap:anywhere}
 .techServicesEntry:hover{background:#fff;color:#6b2b00}.techServicesEntry:focus-visible{outline:3px solid #fff;outline-offset:4px}
+
+/* Layout Solutions 4.5 — roxo suave e amarelo */
+:root{--bg:#f6f4fc;--surface:#fff;--surface2:#f1edf9;--text:#29213d;--muted:#655c78;--primary:#6740b4;--primary2:#8058cc;--border:#e4ddef;--orange:#806b13;--yellow:#ffe16a;--shadow:0 12px 36px rgba(55,33,91,.07);--radius:22px}
+body{background:radial-gradient(ellipse at top right,#eee7ff,transparent 45%),var(--bg);line-height:1.5}
+button,a,input,select,textarea{touch-action:manipulation}button{min-height:44px}button,a{ -webkit-tap-highlight-color:transparent}a:focus-visible,button:focus-visible{outline:3px solid #8058cc;outline-offset:4px}input,select,textarea{min-height:46px;font-size:16px}input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 4px #6740b41c}
+.sidebar{background:linear-gradient(180deg,#342250,#231732);border-right:1px solid #4f396c}.brandLogo{width:48px;height:48px;object-fit:cover;border-radius:14px;border:1px solid #c7b5e2}.brand small{color:var(--yellow)}.nav{display:block;text-decoration:none;min-height:46px}.nav.active,.nav:hover{background:#ffffff18;color:#ffe16a}
+.primary,.publicAddHint{background:var(--primary);color:white;box-shadow:0 6px 16px #6740b420}.checkout{background:var(--yellow);color:#342250;box-shadow:0 6px 18px #baa12d20}.secondary{background:white;color:var(--primary);border:1px solid var(--border)}.hero,.catalogHero{background:linear-gradient(120deg,#4c307d,#8058cc);box-shadow:var(--shadow)}.hero p,.catalogHero p{color:#eee6ff}.catalogEyebrow,.storeTag{color:var(--yellow)}.price,.publicPrice,.saleProduct span{color:var(--primary)}.qrAction,.categoryChip.active{background:#eee7fa!important;color:#51308c!important;border-color:#bca6df}.categoryChip{min-height:44px}.categoryChip.active{box-shadow:none}.cartPanel{border-top:4px solid var(--yellow)}.publicBadge,.reviewAverage{background:#eee7fa;color:#51308c;border-color:#d4c5ec}.reviewForm,.customerQuickRegister{background:#faf8ff}.reviewStars,.productRating>span{color:#806b13!important}.productRating{color:var(--muted)}.starPicker label:hover,.starPicker label:hover~label,.starPicker input:checked~label{color:#806b13}.starPicker input:focus-visible+label{outline:2px solid var(--primary);outline-offset:3px}
+body.public-mode main{max-width:1280px;margin-inline:auto;padding:24px}.publicStoreHero{grid-template-columns:minmax(0,1.3fr) minmax(240px,.7fr);padding:36px;gap:28px;background:linear-gradient(120deg,#4c307d,#7752b7);min-height:0;border-radius:28px;box-shadow:var(--shadow);margin-bottom:24px}.publicHeroCopy h2{font-size:clamp(30px,4vw,48px);line-height:1.12;margin:12px 0}.publicHeroCopy p{color:#f0eaff}.heroLinks{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}.heroLinks a{display:inline-flex;align-items:center;justify-content:center;padding:13px 19px;min-height:48px;border-radius:14px;font-weight:800;text-decoration:none}.shopEntry{background:white;color:#51308c}.techServicesEntry{margin:0;background:var(--yellow);border:1px solid var(--yellow);color:#342250}.techServicesEntry:hover{background:#ffeb96;color:#342250}.heroLinks a:focus-visible{outline-color:var(--yellow)}.heroMiniTrust span{background:#ffffff12}.publicHeroArt{margin:0;align-self:center;display:grid;gap:14px;height:auto;width:auto;aspect-ratio:auto;overflow:visible;background:none}.heroFeature{border:1px solid #ffffff30;border-radius:20px;background:#ffffff0e;padding:22px}.heroFeature strong{display:block;font-size:20px;color:#ffe16a}.heroFeature p{margin:7px 0 0;font-size:14px}.storeTrust{position:static;grid-column:1/-1;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:0;padding:16px 0 0;border-radius:0;border:0;border-top:1px solid #ffffff24;background:none;font-size:12px;backdrop-filter:none}.public-mode .saleLayout{grid-template-columns:minmax(0,1fr) minmax(300px,360px);gap:24px}.public-mode .saleProducts{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.public-mode .saleProduct{border-color:var(--border);box-shadow:none;border-radius:18px}.public-mode .saleProductContent{padding:16px;gap:8px}.public-mode .saleProduct .publicAddHint{background:#eee7fa;color:#51308c;box-shadow:none;min-height:44px;display:grid;place-items:center}.public-mode .saleProduct>div:first-child img{height:170px;object-fit:contain;background:#faf8ff}.public-mode .saleProduct strong{overflow-wrap:anywhere}.public-mode .saleProduct:hover{transform:translateY(-2px);box-shadow:var(--shadow)}.panel{padding:22px}.cartItem{gap:12px;flex-wrap:wrap}.qty button{width:36px;height:36px;min-height:36px}.sum{gap:12px}.sum strong{overflow-wrap:anywhere}.bottom{background:#342250;border-top:1px solid #624785}.bottom .plus{background:var(--yellow);color:#342250}.toast{background:#342250}header{gap:16px}.catalogHero{flex-wrap:wrap}.catalogHero>div{min-width:0}.stats article,.panel,.productCard{border-color:var(--border)}.orange{background:#fff6cb;color:#6f5a09}
+@media(max-width:1100px){.public-mode .saleLayout{grid-template-columns:minmax(0,1fr)}.public-mode .cartPanel{position:static}.public-mode .saleProducts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){body.public-mode main{padding:16px}.publicStoreHero{grid-template-columns:minmax(0,1fr);padding:24px;gap:20px;border-radius:22px}.publicHeroArt{grid-template-columns:1fr 1fr;margin:0;height:auto;width:auto;aspect-ratio:auto}.heroFeature{padding:16px}.heroFeature strong{font-size:17px}.heroFeature p{font-size:13px}.storeTrust{grid-row:auto;font-size:11px}.heroLinks a{flex:1 1 180px}.public-mode .saleProducts{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.public-mode .saleProductContent{padding:12px}.public-mode .saleProduct>div:first-child img{height:160px}.panel{padding:16px}.bottom{grid-template-columns:repeat(6,minmax(0,1fr))}.bottom button{min-height:48px}.bottom small{font-size:9px}.hero h2{font-size:clamp(24px,6vw,34px)}.row2{grid-template-columns:1fr}.panelHead{gap:12px}.modalActions{padding-bottom:env(safe-area-inset-bottom)}}
+@media(max-width:420px){.publicHeroArt{grid-template-columns:1fr}.heroFeature{padding:14px}.public-mode .saleProducts{grid-template-columns:minmax(0,1fr)}.public-mode .saleProduct>div:first-child img{height:210px}.publicHeroCopy h2{font-size:30px}.storeTrust{display:grid;gap:7px}.stats strong{font-size:16px}header{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+@media print{body{background:white}.hero,.catalogHero,.publicStoreHero{box-shadow:none}}
